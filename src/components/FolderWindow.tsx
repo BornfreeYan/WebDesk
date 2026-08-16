@@ -64,6 +64,7 @@ export function FolderWindow({
   // 原生拖拽状态（替代 dnd-kit，避免嵌套 context 冲突）
   const [dragInfo, setDragInfo] = useState<{ id: string; dx: number; dy: number; overId: string | null } | null>(null);
   const pointerStart = useRef<{ id: string; x: number; y: number; moved: boolean } | null>(null);
+  const dragOverRef = useRef<string | null>(null);
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   const handleItemPointerDown = (e: React.PointerEvent, item: Bookmark) => {
@@ -71,6 +72,9 @@ export function FolderWindow({
     setContextMenu(null);
     setRenamingId(null);
     pointerStart.current = { id: item.id, x: e.clientX, y: e.clientY, moved: false };
+    dragOverRef.current = null;
+    // 关键：捕获指针，确保移出图标后 move/up 仍派发到该元素
+    e.currentTarget.setPointerCapture?.(e.pointerId);
   };
 
   const handleItemPointerMove = (e: React.PointerEvent) => {
@@ -91,6 +95,7 @@ export function FolderWindow({
         overId = id;
       }
     });
+    dragOverRef.current = overId;
     setDragInfo({ id: st.id, dx, dy, overId });
   };
 
@@ -98,12 +103,20 @@ export function FolderWindow({
     const st = pointerStart.current;
     if (!st) return;
     pointerStart.current = null;
-    if (dragInfo && dragInfo.overId && dragInfo.overId !== st.id) {
-      onMoveToFolder(st.id, dragInfo.overId);
+    const targetId = dragOverRef.current;
+    dragOverRef.current = null;
+    if (targetId && targetId !== st.id) {
+      onMoveToFolder(st.id, targetId);
     }
     setDragInfo(null);
     // 记录拖拽结束时间，避免松手后误触发单击
     lastDragEnd.current = Date.now();
+  };
+
+  const handleItemPointerCancel = () => {
+    pointerStart.current = null;
+    dragOverRef.current = null;
+    setDragInfo(null);
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -200,6 +213,7 @@ export function FolderWindow({
                     onPointerDown={(e) => handleItemPointerDown(e, item)}
                     onPointerMove={handleItemPointerMove}
                     onPointerUp={handleItemPointerUp}
+                    onPointerCancel={handleItemPointerCancel}
                     onRenameChange={setRenameValue}
                     onRenameCommit={() => setRenamingId(null)}
                     onRenameCancel={() => {
@@ -316,6 +330,7 @@ interface FolderItemProps {
   onPointerDown: (e: React.PointerEvent) => void;
   onPointerMove: (e: React.PointerEvent) => void;
   onPointerUp: () => void;
+  onPointerCancel: () => void;
   onRenameChange: (v: string) => void;
   onRenameCommit: () => void;
   onRenameCancel: () => void;
@@ -338,6 +353,7 @@ function FolderItem({
   onPointerDown,
   onPointerMove,
   onPointerUp,
+  onPointerCancel,
   onRenameChange,
   onRenameCommit,
   onRenameCancel,
@@ -370,6 +386,7 @@ function FolderItem({
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
       style={{
         transform: dragTransform ? `translate3d(${dragTransform.dx}px, ${dragTransform.dy}px, 0)` : undefined,
       }}
