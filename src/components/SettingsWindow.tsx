@@ -15,6 +15,7 @@ interface SettingsWindowProps {
   onManualSync: () => void;
   widgets: WidgetsData;
   onWidgetsChange: (widgets: WidgetsData) => void;
+  onExportData: () => void;
 }
 
 const WALLPAPER_OPTIONS = [
@@ -24,7 +25,7 @@ const WALLPAPER_OPTIONS = [
   { key: 'custom', label: 'Custom' },
 ];
 
-export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, syncConfig, onSyncConfigChange, syncStatus, onTestConnection, onManualSync, widgets, onWidgetsChange }: SettingsWindowProps) {
+export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, syncConfig, onSyncConfigChange, syncStatus, onTestConnection, onManualSync, widgets, onWidgetsChange, onExportData }: SettingsWindowProps) {
   const [position, setPosition] = useState({ x: Math.max(20, window.innerWidth / 2 - 200), y: 80 });
   const [isDragging, setIsDragging] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -65,12 +66,12 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
   }, [isDragging]);
 
   const accentColors = [
-    { name: '蓝色', value: '#007AFF' },
-    { name: '紫色', value: '#AF52DE' },
-    { name: '粉色', value: '#FF2D55' },
-    { name: '橙色', value: '#FF9500' },
-    { name: '绿色', value: '#34C759' },
-    { name: '青色', value: '#5AC8FA' },
+    { name: 'Blue', value: '#007AFF' },
+    { name: 'Purple', value: '#AF52DE' },
+    { name: 'Pink', value: '#FF2D55' },
+    { name: 'Orange', value: '#FF9500' },
+    { name: 'Green', value: '#34C759' },
+    { name: 'Cyan', value: '#5AC8FA' },
   ];
 
   const bgClass = isDark ? 'bg-gray-800/85 border-white/10 text-white' : 'bg-white/85 border-white/50 text-gray-800';
@@ -83,7 +84,7 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
 
   const handleTestConnection = async () => {
     if (!syncConfig.token || !syncConfig.owner || !syncConfig.repo) {
-      setTestResult({ ok: false, message: '请先填写 Token / Owner / Repo' });
+      setTestResult({ ok: false, message: 'Please fill in Token / Owner / Repo first' });
       return;
     }
     setTesting(true);
@@ -206,7 +207,7 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
                             if (!file) return;
                             // 限制 5MB
                             if (file.size > 5 * 1024 * 1024) {
-                              alert('图片大小不能超过 5MB');
+                              alert('Image size cannot exceed 5MB');
                               return;
                             }
                             const reader = new FileReader();
@@ -216,17 +217,16 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
                             reader.readAsDataURL(file);
                           }}
                         />
-                        更换图片
+                        Replace Image
                       </label>
                       <button
                         onClick={() => onSettingsChange({ ...settings, customWallpaper: undefined })}
-                        className="px-3 py-2 rounded-lg text-xs text-red-400 transition-colors border"
-                        style={{
+                        className="px-3 py-2 rounded-lg text-xs text-red-400 transition-colors border"                        style={{
                           backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
                           borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                         }}
                       >
-                        清除
+                        Clear
                       </button>
                     </div>
                   </div>
@@ -246,7 +246,7 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
                         const file = e.target.files?.[0];
                         if (!file) return;
                         if (file.size > 5 * 1024 * 1024) {
-                          alert('图片大小不能超过 5MB');
+                          alert('Image size cannot exceed 5MB');
                           return;
                         }
                         const reader = new FileReader();
@@ -256,8 +256,8 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
                         reader.readAsDataURL(file);
                       }}
                     />
-                    <span className="text-xs opacity-60">点击上传图片（最大 5MB）</span>
-                    <span className="text-[10px] opacity-40 mt-1">支持 JPG、PNG、WebP</span>
+                    <span className="text-xs opacity-60">Click to upload (max 5MB)</span>
+                    <span className="text-[10px] opacity-40 mt-1">JPG, PNG, WebP supported</span>
                   </label>
                 )}
               </div>
@@ -355,7 +355,7 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
                 />
               </div>
               <input
-                placeholder="Branch（默认 main）"
+                placeholder="Branch (default main)"
                 value={syncConfig.branch}
                 onChange={(e) => onSyncConfigChange({ ...syncConfig, branch: e.target.value })}
                 className={inputClass}
@@ -369,14 +369,14 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
                     isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-black/5 border-black/10 hover:bg-black/10'
                   }`}
                 >
-                  {testing ? '测试中…' : '测试连接'}
+                  {testing ? 'Testing…' : 'Test Connection'}
                 </button>
                 <button
                   onClick={onManualSync}
                   className="flex-1 px-3 py-2 rounded-lg text-xs text-white hover:brightness-110 transition-all flex items-center justify-center gap-1.5"
                   style={{ backgroundColor: settings.accentColor }}
                 >
-                  <RefreshCw size={11} /> 立即同步
+                  <RefreshCw size={11} /> Sync Now
                 </button>
               </div>
 
@@ -388,7 +388,7 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
               )}
               {syncStatus.type === 'syncing' && (
                 <p className="text-[11px] flex items-center gap-1 opacity-70">
-                  <Loader2 size={12} className="animate-spin" /> 同步中…
+                  <Loader2 size={12} className="animate-spin" /> Syncing…
                 </p>
               )}
               {syncStatus.type === 'success' && (
@@ -403,10 +403,27 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
               )}
 
               <p className="text-[10px] opacity-40 leading-relaxed">
-                创建 Fine-grained Token（Settings → Developer settings → Fine-grained tokens），仅授权此仓库 Contents: Read
-                &amp; Write。书签数据将公开写入仓库根目录 <code className="opacity-60">webdesk-data.json</code>，自定义壁纸不参与同步。
+                Create a Fine-grained Token (Settings → Developer settings → Fine-grained tokens), granting this repo
+                Contents: Read &amp; Write only. Bookmark data is written publicly to <code className="opacity-60">webdesk-data.json</code> in
+                the repo root. Custom wallpapers are not synced.
               </p>
             </div>
+          </div>
+
+          {/* DATA */}
+          <div>
+            <h3 className="text-[11px] font-bold opacity-40 uppercase tracking-widest mb-3">Data</h3>
+            <button
+              onClick={onExportData}
+              className={`w-full px-3 py-2 rounded-lg text-xs transition-colors border ${
+                isDark ? 'bg-white/5 border-white/10 hover:bg-white/10' : 'bg-black/5 border-black/10 hover:bg-black/10'
+              }`}
+            >
+              Export bookmarks as JSON
+            </button>
+            <p className="text-[10px] opacity-40 leading-relaxed mt-2">
+              Downloads a local backup of your bookmarks, layout and settings. Custom wallpapers are excluded.
+            </p>
           </div>
         </div>
         )}

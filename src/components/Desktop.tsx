@@ -35,8 +35,8 @@ export function Desktop({ bookmarks, isDark, onDelete, onToggleDock, onOpenFolde
           <div className={`w-20 h-20 rounded-3xl flex items-center justify-center mb-4 ${isDark ? 'bg-white/5' : 'bg-white/50'}`}>
             <span className="text-4xl">📭</span>
           </div>
-          <p className="text-base font-medium mb-1">桌面空空如也</p>
-          <p className="text-sm opacity-70">点击 Dock 栏的 + 号添加书签，或拖拽导入 HTML</p>
+          <p className="text-base font-medium mb-1">The desktop is empty</p>
+          <p className="text-sm opacity-70">Click + in the Dock to add a bookmark, or drag &amp; drop an HTML bookmark file to import</p>
         </div>
       )}
     </div>

@@ -83,7 +83,7 @@ export function TodoWidget({ state, isDark, accentColor, onPositionChange, onIte
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addItem()}
             onPointerDown={(e) => e.stopPropagation()}
-            placeholder="添加待办…"
+            placeholder="Add a todo…"
             className={`flex-1 min-w-0 px-3 py-1.5 rounded-xl text-sm outline-none transition-all border ${
               isDark
                 ? 'bg-black/30 border-white/10 text-white placeholder:text-white/40 focus:border-white/30'
@@ -102,7 +102,7 @@ export function TodoWidget({ state, isDark, accentColor, onPositionChange, onIte
 
         <div className="mt-3 space-y-1 max-h-40 overflow-y-auto pr-1">
           {state.items.length === 0 && (
-            <p className="text-xs opacity-40 text-center py-2">暂无待办</p>
+            <p className="text-xs opacity-40 text-center py-2">No todos yet</p>
           )}
           {state.items.map((item) => (
             <div
@@ -140,7 +140,7 @@ export function TodoWidget({ state, isDark, accentColor, onPositionChange, onIte
               ) : (
                 <span
                   onClick={() => !item.done && startEdit(item)}
-                  title="点击编辑"
+                  title="Click to edit"
                   className={`flex-1 min-w-0 text-sm break-words leading-snug transition-all cursor-text ${
                     item.done ? 'line-through opacity-40' : ''
                   }`}

@@ -60,12 +60,12 @@ export function useSync(
       }
       // 内容相同 → 跳过（避免加载云端后 debounce 生成无意义的 commit）
       if (remote && normalizeContent(dataRef.current) === normalizeContent(JSON.parse(remoteContent) as DesktopData)) {
-        setStatus({ type: 'success', message: '云端已是最新，跳过推送' });
+        setStatus({ type: 'success', message: 'Cloud is up to date, skipped push' });
         return;
       }
       // 远端时间戳严格更新 → 跳过（不覆盖他人改动）
       if (remote && remoteTime > (dataRef.current.updatedAt ?? 0)) {
-        setStatus({ type: 'success', message: '云端已是最新，跳过推送' });
+        setStatus({ type: 'success', message: 'Cloud is up to date, skipped push' });
         return;
       }
       const now = Date.now();
@@ -93,7 +93,7 @@ export function useSync(
       }
       // 同步本地时间戳，避免下次推送误判"云端已是最新"
       setData((prev) => ({ ...prev, updatedAt: now }));
-      setStatus({ type: 'success', message: `已同步 ${new Date(now).toLocaleTimeString()}` });
+      setStatus({ type: 'success', message: `Synced at ${new Date(now).toLocaleTimeString()}` });
     } catch (e) {
       setStatus({ type: 'error', message: (e as Error).message });
     }
@@ -144,7 +144,7 @@ export function useSync(
           dockItems: parsed.dockItems ?? [],
         };
         setPendingRemote(merged);
-        setStatus({ type: 'success', message: '发现云端更新' });
+        setStatus({ type: 'success', message: 'Cloud update found' });
         return true;
       }
 

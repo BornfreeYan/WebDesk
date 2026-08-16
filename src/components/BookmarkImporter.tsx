@@ -40,23 +40,23 @@ export function BookmarkImporter({ onImport, onClose, isDark }: BookmarkImporter
       try {
         const html = e.target?.result as string;
         if (!html || html.trim().length === 0) {
-          setParseError('文件内容为空');
+          setParseError('File content is empty');
           setIsParsing(false);
           return;
         }
         const bookmarks = parseBookmarksHtml(html);
         setParsedBookmarks(bookmarks);
         if (bookmarks.length === 0) {
-          setParseError('未解析到任何书签，请确认文件格式正确');
+          setParseError('No bookmarks found. Please check the file format.');
         }
       } catch (err) {
-        setParseError('解析失败：' + (err instanceof Error ? err.message : String(err)));
+        setParseError('Parse failed: ' + (err instanceof Error ? err.message : String(err)));
       } finally {
         setIsParsing(false);
       }
     };
     reader.onerror = () => {
-      setParseError('文件读取失败');
+      setParseError('Failed to read the file');
       setIsParsing(false);
     };
     reader.readAsText(file);
@@ -71,7 +71,7 @@ export function BookmarkImporter({ onImport, onClose, isDark }: BookmarkImporter
     if (!file) return;
 
     if (!file.name.toLowerCase().endsWith('.html') && !file.name.toLowerCase().endsWith('.htm')) {
-      setParseError('仅支持 .html / .htm 格式的书签文件');
+      setParseError('Only .html / .htm bookmark files are supported');
       return;
     }
 
@@ -128,9 +128,8 @@ export function BookmarkImporter({ onImport, onClose, isDark }: BookmarkImporter
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-semibold flex items-center gap-2">
             <FileText size={20} />
-            导入书签
-          </h2>
-          <button
+            Import Bookmarks
+          </h2>          <button
             onClick={onClose}
             className="w-8 h-8 rounded-full hover:bg-black/5 flex items-center justify-center transition-colors"
           >
@@ -154,8 +153,8 @@ export function BookmarkImporter({ onImport, onClose, isDark }: BookmarkImporter
           }`}
         >
           <Upload size={36} className="mx-auto mb-3 opacity-40" />
-          <p className="text-sm font-medium mb-1">点击选择或拖放浏览器导出的书签 HTML 文件</p>
-          <p className="text-xs opacity-50">支持 Chrome / Edge / Firefox / Safari 书签导出格式</p>
+          <p className="text-sm font-medium mb-1">Click to select or drag &amp; drop a browser-exported bookmarks HTML file</p>
+          <p className="text-xs opacity-50">Supports Chrome / Edge / Firefox / Safari bookmark export formats</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -181,7 +180,7 @@ export function BookmarkImporter({ onImport, onClose, isDark }: BookmarkImporter
         {isParsing && (
           <div className="flex items-center justify-center py-4">
             <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-2" />
-            <span className="text-sm">正在解析...</span>
+            <span className="text-sm">Parsing…</span>
           </div>
         )}
 
@@ -189,8 +188,8 @@ export function BookmarkImporter({ onImport, onClose, isDark }: BookmarkImporter
         {parsedBookmarks.length > 0 && !isParsing && (
           <div className="flex-1 overflow-hidden mb-4">
             <p className="text-sm mb-2 font-medium">
-              找到 {linkCount} 个链接{folderCount > 0 ? `，${folderCount} 个文件夹` : ''}
-              {folderCount > 0 && '（文件夹已保持层级结构）'}
+              Found {linkCount} links{folderCount > 0 ? `, ${folderCount} folders` : ''}
+              {folderCount > 0 && ' (folder structure preserved)'}
             </p>
             <div className={`max-h-52 overflow-y-auto rounded-xl p-2 space-y-1 ${isDark ? 'bg-black/20' : 'bg-black/5'}`}>
               {previewLinks.map((item, index) => (
@@ -220,14 +219,14 @@ export function BookmarkImporter({ onImport, onClose, isDark }: BookmarkImporter
             onClick={onClose}
             className={`px-4 py-2 rounded-xl text-sm transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
           >
-            取消
+            Cancel
           </button>
           <button
             onClick={handleImport}
             disabled={parsedBookmarks.length === 0}
             className="px-4 py-2 rounded-xl text-sm bg-blue-500 text-white hover:bg-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            导入 {parsedBookmarks.length > 0 ? `(${parsedBookmarks.length})` : ''}
+            Import {parsedBookmarks.length > 0 ? `(${parsedBookmarks.length})` : ''}
           </button>
         </div>
       </div>
@@ -247,7 +246,7 @@ function parseBookmarksHtml(html: string): Bookmark[] {
 
   for (const a of links) {
     const url = a.getAttribute('href');
-    const name = a.textContent?.trim() || '未命名';
+    const name = a.textContent?.trim() || 'Untitled';
 
     // 过滤无效链接
     if (!url || url.startsWith('javascript:') || url === '' || url.startsWith('place:') || url.startsWith('about:')) {

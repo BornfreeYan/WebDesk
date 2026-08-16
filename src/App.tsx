@@ -224,7 +224,7 @@ function App() {
     setData((prev) => {
       const folder: Bookmark = {
         id: `folder-${Date.now()}`,
-        name: '新建文件夹',
+        name: 'New Folder',
         type: 'folder',
         position: {
           x: 40 + (prev.bookmarks.length % 8) * 90,
@@ -243,7 +243,7 @@ function App() {
     setData((prev) => {
       const newFolder: Bookmark = {
         id: `folder-${Date.now()}`,
-        name: '新建文件夹',
+        name: 'New Folder',
         type: 'folder',
         position: { x: 0, y: 0 },
         children: [],
@@ -351,6 +351,20 @@ function App() {
     setShowImporter(false);
   };
 
+  const handleExportData = () => {
+    const payload: DesktopData = {
+      ...data,
+      settings: { ...data.settings, customWallpaper: undefined },
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `webdesk-export-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const isDark = data.settings.theme === 'dark';
 
   return (
@@ -358,8 +372,7 @@ function App() {
       <div className="relative w-full h-full overflow-hidden wallpaper-transition" style={getBackgroundStyle(data.settings)}>
         {/* 计数器 — 显示一级文件夹和总书签数 */}
         <div className={`fixed top-3 right-3 z-50 px-2 py-1 rounded-lg text-[10px] font-mono opacity-40 pointer-events-none ${isDark ? 'bg-white/10 text-white' : 'bg-black/5 text-gray-800'}`}>
-          书签: {data.bookmarks.length} | 文件夹: {data.bookmarks.filter(b => b.type === 'folder').length}
-        </div>
+          Bookmarks: {data.bookmarks.length} | Folders: {data.bookmarks.filter(b => b.type === 'folder').length}        </div>
 
         {/* 全局搜索 */}
         <SearchBar
@@ -398,21 +411,20 @@ function App() {
         {sync.pendingRemote && (
           <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[60] animate-window-enter">
             <div className={`px-4 py-3 rounded-xl shadow-2xl border flex items-center gap-3 ${isDark ? 'bg-gray-800/95 border-white/10 text-white' : 'bg-white/95 border-white/50 text-gray-800'}`}>
-              <span className="text-sm">发现云端更新，是否加载云端数据？</span>
+              <span className="text-sm">Cloud data updated. Load it?</span>
               <button
                 onClick={sync.applyPendingRemote}
                 className="px-3 py-1.5 rounded-lg text-xs text-white hover:brightness-110 transition-all"
                 style={{ backgroundColor: data.settings.accentColor }}
               >
-                加载
+                Load
               </button>
               <button
                 onClick={sync.dismissPendingRemote}
                 className={`px-3 py-1.5 rounded-lg text-xs transition-colors ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
               >
-                忽略
-              </button>
-            </div>
+                Dismiss
+              </button>            </div>
           </div>
         )}
 
@@ -466,6 +478,7 @@ function App() {
             onManualSync={() => sync.manualSync()}
             widgets={widgets}
             onWidgetsChange={setWidgets}
+            onExportData={handleExportData}
           />
         )}
 
@@ -526,10 +539,10 @@ function App() {
               } backdrop-blur-xl`}
               onClick={(e) => e.stopPropagation()}
             >
-              <h2 className="text-lg font-semibold mb-4">添加书签</h2>
+              <h2 className="text-lg font-semibold mb-4">Add Bookmark</h2>
               <input
                 type="text"
-                placeholder="名称（如 GitHub）"
+                placeholder="Name (e.g. GitHub)"
                 value={newBookmark.name}
                 onChange={(e) => setNewBookmark({ ...newBookmark, name: e.target.value })}
                 onKeyDown={(e) => e.key === 'Enter' && document.getElementById('url-input')?.focus()}
@@ -542,7 +555,7 @@ function App() {
               <input
                 id="url-input"
                 type="text"
-                placeholder="网址（如 github.com）"
+                placeholder="URL (e.g. github.com)"
                 value={newBookmark.url}
                 onChange={(e) => setNewBookmark({ ...newBookmark, url: e.target.value })}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddBookmark()}
@@ -559,16 +572,15 @@ function App() {
                     isDark ? 'hover:bg-white/10 text-white/80' : 'hover:bg-gray-100 text-gray-600'
                   }`}
                 >
-                  取消
+                  Cancel
                 </button>
                 <button
                   onClick={handleAddBookmark}
                   className="px-4 py-2 rounded-xl text-sm text-white hover:brightness-110 transition-all"
                   style={{ backgroundColor: data.settings.accentColor }}
                 >
-                  添加
-                </button>
-              </div>
+                  Add
+                </button>              </div>
             </div>
           </div>
         )}

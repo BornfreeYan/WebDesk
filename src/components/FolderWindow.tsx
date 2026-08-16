@@ -189,7 +189,7 @@ export function FolderWindow({
               className={`absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center transition-colors z-10 ${
                 isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-black/5 text-gray-500'
               }`}
-              title="新建子文件夹"
+              title="New subfolder"
             >
               <Plus size={16} />
             </button>
@@ -197,8 +197,8 @@ export function FolderWindow({
             {!folder.children || folder.children.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 opacity-40">
                 <Folder size={32} className="mb-2" />
-                <p className="text-sm">文件夹为空</p>
-                <p className="text-xs mt-1 opacity-70">点击右上角 + 新建子文件夹</p>
+                <p className="text-sm">Empty folder</p>
+                <p className="text-xs mt-1 opacity-70">Click + in the top-right to create a subfolder</p>
               </div>
             ) : (
               <div className="grid grid-cols-4 gap-4 pt-4">
@@ -282,7 +282,7 @@ export function FolderWindow({
                 className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
               >
                 <span className="w-3.5 h-3.5 text-xs flex items-center justify-center">✏️</span>
-                重命名
+                Rename
               </button>
               <button
                 onClick={(e) => {
@@ -293,7 +293,7 @@ export function FolderWindow({
                 className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
               >
                 <span className="w-3.5 h-3.5 text-xs flex items-center justify-center">📤</span>
-                移到桌面
+                Move to Desktop
               </button>
               <button
                 onClick={(e) => {
@@ -305,7 +305,7 @@ export function FolderWindow({
                 className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
               >
                 <Folder size={14} className="opacity-70" />
-                移动到文件夹…
+                Move to Folder…
               </button>
               <div className={`h-px mx-2 my-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
               <button
@@ -317,7 +317,7 @@ export function FolderWindow({
                 className={`w-full px-3 py-2 text-sm flex items-center gap-2 text-red-400 hover:bg-red-50 transition-colors text-left ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`}
               >
                 <Trash2 size={14} />
-                删除
+                Delete
               </button>
             </div>
           </div>

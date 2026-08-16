@@ -19,13 +19,13 @@ export function Dock({ bookmarks, openFolders, showSettings, isDark, accentColor
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const allItems = [
-    { type: 'action' as const, icon: <Plus size={20} strokeWidth={2.5} />, label: '添加', onClick: onAddClick },
-    { type: 'action' as const, icon: <Folder size={20} strokeWidth={2.5} />, label: '新建文件夹', onClick: onCreateFolder },
-    { type: 'action' as const, icon: <Upload size={20} strokeWidth={2.5} />, label: '导入', onClick: onImportClick },
+    { type: 'action' as const, icon: <Plus size={20} strokeWidth={2.5} />, label: 'Add', onClick: onAddClick },
+    { type: 'action' as const, icon: <Folder size={20} strokeWidth={2.5} />, label: 'New Folder', onClick: onCreateFolder },
+    { type: 'action' as const, icon: <Upload size={20} strokeWidth={2.5} />, label: 'Import', onClick: onImportClick },
     { type: 'divider' as const },
     ...bookmarks.map((b) => ({ type: 'bookmark' as const, bookmark: b })),
     { type: 'divider' as const },
-    { type: 'action' as const, icon: <Settings size={20} strokeWidth={2.5} />, label: '设置', onClick: onSettingsClick, isOpen: showSettings },
+    { type: 'action' as const, icon: <Settings size={20} strokeWidth={2.5} />, label: 'Settings', onClick: onSettingsClick, isOpen: showSettings },
   ];
 
   // 计算每个 item 的放大倍数：hovered 最大，相邻稍大，其余正常

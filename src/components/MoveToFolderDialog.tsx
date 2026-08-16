@@ -56,14 +56,14 @@ export function MoveToFolderDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-4 py-3 border-b border-white/10 text-sm font-medium flex items-center justify-between">
-          <span>移动「{itemName}」到…</span>
+          <span>Move “{itemName}” to…</span>
           <button onClick={onClose} className="opacity-50 hover:opacity-100 transition-opacity">
             <X size={14} />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto py-1">
           {folders.length === 0 && (
-            <p className="px-4 py-4 text-xs opacity-50 text-center">没有可移动的目标文件夹</p>
+            <p className="px-4 py-4 text-xs opacity-50 text-center">No target folders available</p>
           )}
           {folders.map((f) => (
             <button

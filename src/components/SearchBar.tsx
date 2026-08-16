@@ -79,7 +79,7 @@ export function SearchBar({ bookmarks, isDark, onOpenLink, onOpenFolder }: Searc
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
-          placeholder="搜索书签…"
+          placeholder="Search bookmarks…"
           className={`w-44 pl-8 pr-3 py-1.5 rounded-xl text-xs outline-none transition-all border backdrop-blur-xl ${inputClass}`}
         />
       </div>
@@ -91,7 +91,7 @@ export function SearchBar({ bookmarks, isDark, onOpenLink, onOpenFolder }: Searc
           }`}
         >
           {results.length === 0 ? (
-            <p className="px-4 py-3 text-xs opacity-50">未找到匹配的书签</p>
+            <p className="px-4 py-3 text-xs opacity-50">No matching bookmarks</p>
           ) : (
             results.map((h) => (
               <button

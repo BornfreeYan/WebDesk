@@ -43,17 +43,17 @@ export async function testConnection(config: SyncConfig): Promise<TestResult> {
       headers: buildHeaders(config),
     });
     if (res.status === 401 || res.status === 403) {
-      return { ok: false, message: 'Token 无效或无权限，请检查 Token' };
+      return { ok: false, message: 'Token is invalid or lacks permission. Please check your token.' };
     }
     if (res.status === 404) {
-      return { ok: false, message: '仓库不存在，请检查 Owner / Repo 名称' };
+      return { ok: false, message: 'Repository not found. Please check the Owner / Repo names.' };
     }
     if (!res.ok) {
-      return { ok: false, message: `连接失败 (HTTP ${res.status})` };
+      return { ok: false, message: `Connection failed (HTTP ${res.status})` };
     }
-    return { ok: true, message: '连接成功，Token 与仓库均有效' };
+    return { ok: true, message: 'Connection OK, token and repo are valid' };
   } catch (e) {
-    return { ok: false, message: `网络错误: ${(e as Error).message}` };
+    return { ok: false, message: `Network error: ${(e as Error).message}` };
   }
 }
 
@@ -64,7 +64,7 @@ export async function fetchRemoteFile(config: SyncConfig): Promise<RemoteFile | 
   });
   if (res.status === 404) return null;
   if (!res.ok) {
-    throw new Error(`拉取失败 (HTTP ${res.status})`);
+    throw new Error(`Fetch failed (HTTP ${res.status})`);
   }
   const json = await res.json();
   return { content: decodeBase64(json.content), sha: json.sha };
@@ -84,6 +84,6 @@ export async function pushRemoteFile(config: SyncConfig, content: string, sha?: 
   });
   if (!res.ok) {
     const err = await res.json().catch(() => null);
-    throw new Error(err?.message || `推送失败 (HTTP ${res.status})`);
+    throw new Error(err?.message || `Push failed (HTTP ${res.status})`);
   }
 }

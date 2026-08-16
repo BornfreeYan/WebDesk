@@ -202,7 +202,7 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
               className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
             >
               <span className="w-3.5 h-3.5 text-xs flex items-center justify-center">✏️</span>
-              重命名
+              Rename
             </button>
             <button
               onClick={(e) => {
@@ -213,7 +213,7 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
               className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
             >
               <Pin size={14} className={isInDock ? 'text-blue-400' : ''} />
-              {isInDock ? '从 Dock 移除' : '固定到 Dock'}
+              {isInDock ? 'Unpin from Dock' : 'Pin to Dock'}
             </button>
             <button
               onClick={(e) => {
@@ -224,7 +224,7 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
               className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
             >
               <Folder size={14} className="opacity-70" />
-              移动到文件夹…
+              Move to Folder…
             </button>
             <div className={`h-px mx-2 my-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
             <button
@@ -236,7 +236,7 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
               className={`w-full px-3 py-2 text-sm flex items-center gap-2 text-red-400 hover:bg-red-50 transition-colors text-left ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`}
             >
               <Trash2 size={14} />
-              删除
+              Delete
             </button>
           </div>
         </div>
