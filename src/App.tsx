@@ -263,6 +263,51 @@ function App() {
     });
   };
 
+  // 文件夹窗口内拖拽：把图标（书签或子文件夹）移入目标子文件夹
+  const handleMoveToFolder = (sourceId: string, targetFolderId: string) => {
+    setData((prev) => {
+      let moved: Bookmark | undefined;
+
+      function removeFromTree(items: Bookmark[]): Bookmark[] {
+        const result: Bookmark[] = [];
+        for (const item of items) {
+          if (item.id === sourceId) {
+            moved = item;
+            continue;
+          }
+          if (item.children) {
+            result.push({ ...item, children: removeFromTree(item.children) });
+          } else {
+            result.push(item);
+          }
+        }
+        return result;
+      }
+
+      const bookmarks = removeFromTree(prev.bookmarks);
+      if (!moved || moved.id === targetFolderId) return prev;
+
+      // 把图标加入目标文件夹；若目标已被移除（源是目标祖先 → 防循环），放弃
+      let added = false;
+      function addToFolder(items: Bookmark[]): Bookmark[] {
+        return items.map((item): Bookmark => {
+          if (item.id === targetFolderId && item.type === 'folder') {
+            added = true;
+            return { ...item, children: [...(item.children || []), moved!] };
+          }
+          if (item.children) {
+            return { ...item, children: addToFolder(item.children) };
+          }
+          return item;
+        });
+      }
+
+      const newBookmarks = addToFolder(bookmarks);
+      if (!added) return prev;
+      return { ...prev, bookmarks: newBookmarks };
+    });
+  };
+
   const handleToggleDock = (id: string) => {
     setData((prev) => {
       const isInDock = prev.dockItems.includes(id);
@@ -443,6 +488,7 @@ function App() {
             onRename={handleRename}
             onCreateSubfolder={handleCreateSubfolder}
             onMoveToDesktop={handleMoveToDesktop}
+            onMoveToFolder={handleMoveToFolder}
           />
         ))}
 
