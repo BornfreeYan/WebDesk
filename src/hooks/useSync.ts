@@ -25,6 +25,19 @@ export function useSync(
 
   const isConfigured = (cfg: SyncConfig) => !!(cfg.token && cfg.owner && cfg.repo);
 
+  // 内容归一化：忽略 updatedAt 与自定义壁纸，用于比较"内容是否相同"
+  const normalizeContent = (d: DesktopData) =>
+    JSON.stringify({
+      bookmarks: d.bookmarks,
+      dockItems: d.dockItems,
+      settings: {
+        theme: d.settings.theme,
+        accentColor: d.settings.accentColor,
+        wallpaper: d.settings.wallpaper,
+        showDock: d.settings.showDock,
+      },
+    });
+
   const doPush = useCallback(async () => {
     const cfg = configRef.current;
     if (!isConfigured(cfg)) return;
@@ -33,9 +46,11 @@ export function useSync(
       // 写前重新拉取最新 SHA 与内容，避免覆盖远端更新
       let sha: string | undefined;
       let remoteTime = 0;
+      let remoteContent = '';
       const remote = await fetchRemoteFile(cfg);
       if (remote) {
         sha = remote.sha;
+        remoteContent = remote.content;
         try {
           const parsed = JSON.parse(remote.content) as Partial<DesktopData>;
           remoteTime = parsed.updatedAt ?? 0;
@@ -43,8 +58,12 @@ export function useSync(
           remoteTime = 0;
         }
       }
-      // 只有远端严格更新才跳过：本地时间戳只在推送成功后更新，
-      // 本地内容变更（如删除）不会刷新时间戳，相等时必须推送
+      // 内容相同 → 跳过（避免加载云端后 debounce 生成无意义的 commit）
+      if (remote && normalizeContent(dataRef.current) === normalizeContent(JSON.parse(remoteContent) as DesktopData)) {
+        setStatus({ type: 'success', message: '云端已是最新，跳过推送' });
+        return;
+      }
+      // 远端时间戳严格更新 → 跳过（不覆盖他人改动）
       if (remote && remoteTime > (dataRef.current.updatedAt ?? 0)) {
         setStatus({ type: 'success', message: '云端已是最新，跳过推送' });
         return;
@@ -55,14 +74,30 @@ export function useSync(
         updatedAt: now,
         settings: { ...dataRef.current.settings, customWallpaper: undefined },
       };
-      await pushRemoteFile(cfg, JSON.stringify(payload), sha);
+      const payloadStr = JSON.stringify(payload);
+      try {
+        await pushRemoteFile(cfg, payloadStr, sha);
+      } catch (e) {
+        const msg = (e as Error).message;
+        // 409 SHA 冲突：另一设备刚推送过，重取最新 SHA 再试一次
+        if (/does not match|sha|conflict/i.test(msg)) {
+          const latest = await fetchRemoteFile(cfg);
+          if (latest) {
+            await pushRemoteFile(cfg, payloadStr, latest.sha);
+          } else {
+            await pushRemoteFile(cfg, payloadStr);
+          }
+        } else {
+          throw e;
+        }
+      }
       // 同步本地时间戳，避免下次推送误判"云端已是最新"
       setData((prev) => ({ ...prev, updatedAt: now }));
       setStatus({ type: 'success', message: `已同步 ${new Date(now).toLocaleTimeString()}` });
     } catch (e) {
       setStatus({ type: 'error', message: (e as Error).message });
     }
-  }, []);
+  }, [setData]);
 
   const loadRemote = useCallback(async (): Promise<boolean> => {
     const cfg = configRef.current;
@@ -86,6 +121,15 @@ export function useSync(
       const localTime = dataRef.current.updatedAt ?? 0;
 
       if (remoteTime > localTime) {
+        // 内容相同（仅时间戳不同）→ 静默对齐时间戳，不提示
+        if (parsed.bookmarks && parsed.settings && parsed.dockItems) {
+          const remoteFull = parsed as DesktopData;
+          if (normalizeContent(remoteFull) === normalizeContent(dataRef.current)) {
+            setData((prev) => ({ ...prev, updatedAt: remoteTime }));
+            setStatus({ type: 'idle' });
+            return false;
+          }
+        }
         // 远端较新：合并（保留本地自定义壁纸），提示用户确认加载
         const local = dataRef.current;
         let wallpaper = parsed.settings?.wallpaper ?? local.settings.wallpaper;
