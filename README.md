@@ -1,132 +1,141 @@
 # WebDesk
 
-Your desktop on the web — a personal web desktop bookmark manager with a macOS-style desktop, icons, Dock and folders, backed by free cross-device sync through your own GitHub repository.
+**🌐 [English README](README.en.md) | 简体中文**
 
-## Features
+个人 Web 桌面书签管理器。用 macOS 风格的桌面、图标、Dock 栏管理你的常用网站书签，通过 GitHub 仓库实现跨设备免费同步。Your desktop on the web.
 
-- 🖥️ **Desktop metaphor** — free-drag icons, folder hierarchy, macOS-style Dock and settings window
-- 🔖 **Bookmark management** — add, import browser HTML bookmarks, rename, delete, context menus
-- 📁 **Folder organization** — nested folders, double-click to open a dedicated window
-- 🌗 **Personalization** — light/dark mode, system accent colors, built-in wallpapers (custom upload supported)
-- ☁️ **GitHub sync** — bookmarks, layout and settings auto-sync to your GitHub repo, restore across devices
-- 🔍 **Global search** — fuzzy search across all bookmarks and folders
-- 🕐 **Desktop widgets** — draggable glassmorphism clock and todo list (local only)
+## 功能特性
 
-## Quick Start (local)
+- 🖥️ **桌面隐喻**：图标自由拖拽、文件夹层级、macOS 风格 Dock 栏与设置窗口
+- 🔖 **书签管理**：手动添加、浏览器 HTML 书签导入、重命名、删除、右键菜单
+- 📁 **文件夹归纳**：创建文件夹与子文件夹，双击打开独立窗口；跨层级移动用右键"移动到文件夹"
+- 🔍 **全局搜索**：右上角搜索框，模糊匹配所有层级的书签与文件夹
+- 🕐 **桌面小组件**：毛玻璃质感时钟与待办（可拖拽、可编辑、本地存储）
+- 🌗 **个性化**：亮/暗模式、System Accent 主题色、多款内置壁纸（支持自定义上传）
+- ☁️ **GitHub 同步**：书签 + 布局 + 设置自动同步到 GitHub 仓库，跨设备恢复
+- 💾 **JSON 导出**：设置中一键备份书签数据到本地文件
+
+## 快速开始（本地运行）
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Deploy & Use (recommended: Fork)
+## 部署与使用（推荐：Fork 方式）
 
-### Step 0: Prepare a GitHub repository
+### 第 0 步：准备 GitHub 仓库
 
-**You need a repository first**, because creating a token requires selecting a repository to authorize. Fork this repo (below), or create a new empty repo.
+**必须先有一个仓库**，因为创建 Token 时需要指定一个仓库来授权。如果你还没有，请先 Fork 本仓库（见下），或自己新建一个空仓库。
 
-### Step 1: Fork this repository
+### 第 1 步：Fork 本仓库
 
-1. Click **Fork** at the top-right of this page, into your own account.
-2. After forking, **it is recommended to delete `webdesk-data.json`** at the repo root — it contains the original author's sync data. Delete it to start from scratch; keep it to inherit the author's bookmarks.
+1. 打开本仓库页面，点击右上角 **Fork**，选到你的新账号/新仓库
+2. Fork 完成后，**建议删除 fork 仓库根目录下的 `webdesk-data.json`**（那是原作者的同步数据），删除后你的数据从零开始；不删除则继承原作者的书签数据
 
-### Step 2: Enable GitHub Actions & deploy
+### 第 2 步：开启 GitHub Actions 并部署
 
-> ⚠️ Forked repos have **Actions disabled by default** — you must enable them manually.
+> ⚠️ Fork 出来的仓库**默认 Actions 是关闭的**，必须手动开启。
 
-1. Go to your fork → **Actions** tab → click the green button **"I understand my workflows, go ahead and enable them"**.
-2. Go to **Settings → Pages** → **Build and deployment** → Source: **GitHub Actions** (do **not** choose "Deploy from a branch").
-3. Back in the **Actions** tab → click **Deploy to GitHub Pages** in the left list → you'll see "This workflow has a workflow_dispatch event trigger" → click **Run workflow** on the right.
-4. Wait ~30 seconds until the workflow turns green.
-5. Visit `https://<your-username>.github.io/<repo-name>/` — you should see your WebDesk desktop.
+1. 进入 fork 仓库 → **Actions** 标签页 → 点击绿色按钮 **"I understand my workflows, go ahead and enable them"**（开启 GitHub Action 功能）
+2. 进入 **Settings → Pages** → **Build and deployment** → Source 选择 **GitHub Actions**（**不要选 Deploy from a branch**）
+3. 回到 **Actions** 标签页 → 左侧列表点击 **Deploy to GitHub Pages** → 页面出现 "This workflow has a workflow_dispatch event trigger" 提示 → 点击右侧 **Run workflow** 按钮
+4. 等待约 30 秒，workflow 变绿即部署完成
+5. 访问 `https://<你的用户名>.github.io/<仓库名>/`，看到 WebDesk 桌面即上线成功
 
-### Step 3: Create a Token (Fine-grained Token)
+### 第 3 步：创建 Token（Fine-grained Token）
 
-1. GitHub → avatar (top-right) → **Settings**
-2. Scroll to the bottom-left → **Developer settings**
+1. 打开 GitHub → 右上角头像 → **Settings**
+2. 左侧底部 → **Developer settings**
 3. **Personal access tokens** → **Fine-grained tokens** → **Generate new token**
-4. Configure:
+4. 填写以下配置：
 
-| Field | Value |
+| 配置项 | 填写 |
 |---|---|
-| **Token name** | anything, e.g. `WebDesk` |
-| **Expiration** | 90 days recommended (re-configure after expiry) |
-| **Repository access** | **Only select repositories** → check your fork repo |
+| **Token name** | 任意，如 `WebDesk` |
+| **Expiration** | 建议 90 天（过期后需在 WebDesk 中重新配置） |
+| **Repository access** | **Only select repositories** → 勾选你的 fork 仓库 |
 
-5. **Key step**: in the **Repository permissions** section (not the *Account permissions* above it) find **Contents** and set it to **Read and write**.
+5. **关键步骤**：在 **Repository permissions** 区域（注意：不是上方 *Account permissions*）找到 **Contents**，设置为 **Read and write**
 
-> ⚠️ Common pitfall: there are two permission sections —
-> - **Account permissions**: Email addresses, Gists, Followers, etc. — **leave untouched**
-> - **Repository permissions**: Contents, Issues, Pull requests, etc. — **only appears after selecting a repository**. Set **Contents** to **Read and write** here.
+> ⚠️ 常见误区：页面中有两个权限区域——
+> - **Account permissions**（账号权限）：含 Email addresses、Gists、Followers 等，**不需要改动**
+> - **Repository permissions**（仓库权限）：含 Contents、Issues、Pull requests 等。**必须选中仓库后才会显示**，我们需要把这里的 **Contents** 改为 **Read and write**
 >
-> If you don't see the Repository permissions section, check that Repository access is set to "Only select repositories" (or "All repositories"), not "Public Repositories (read-only)".
+> 如果页面没有显示 Repository permissions 区域，请检查 Repository access 是否选择了 "Only select repositories"（或 "All repositories"），而不是 "Public Repositories (read-only)"。
 
-6. Click **Generate token** and **copy it immediately** (shown only once).
+6. 点击 **Generate token**，**立即复制**（Token 只显示一次）
 
-### Step 4: Configure & sync in WebDesk
+### 第 4 步：在 WebDesk 中填写并同步
 
-Open your WebDesk site → Settings window → **GitHub Sync** section:
+打开你的 WebDesk 站点 → 设置窗口 → **GitHub Sync** 区块，填写：
 
-| Field | Value |
+| 设置项 | 填写值 |
 |---|---|
-| **Token** | the token from Step 3 |
-| **Owner** | your GitHub username (e.g. `BornfreeYan`) |
-| **Repo** | the repo name (e.g. `WebDesk`) |
+| **Token** | 第 3 步复制的 Token |
+| **Owner** | 你的 GitHub 用户名（如 `BornfreeYan`） |
+| **Repo** | 仓库名（如 `WebDesk`） |
 | **Branch** | `main` |
 
-Click **Test Connection** — "Connection OK" means it's configured.
+点击 **Test Connection**，显示"Connection OK"即完成配置。
 
-### Step 5: Verify sync
+### 第 5 步：验证同步
 
-- Add or delete a bookmark, wait 5–10 seconds.
-- Refresh your repo page: `webdesk-data.json` at the repo root should show "just now" with the updated content.
+- 添加或删除一个书签，等 5-10 秒
+- 到你的仓库页面刷新，看到根目录 `webdesk-data.json` 的修改时间变为 "just now" 且内容同步，即配置成功
 
-## Data Storage & Sync
+## 数据存储与同步
 
-- Data is stored in browser `localStorage` by default (key: `webdesk-data-v3`) — zero configuration.
-- With GitHub sync configured, data is also backed up to `webdesk-data.json` at the repo root.
-- **Synced**: bookmarks (with folder hierarchy), icon positions, Dock config, theme settings.
-- **Not synced**: custom wallpaper images (local only), GitHub Token (local browser only).
-- **Local backup**: use Settings → Data → **Export bookmarks as JSON** anytime.
+- 默认数据保存在浏览器 `localStorage`（key: `webdesk-data-v3`），无需任何配置
+- 配置 GitHub 同步后，数据同时备份到仓库根目录的 `webdesk-data.json`
+- 同步范围：书签（含文件夹层级）、图标位置、Dock 配置、主题设置
+- 不同步：自定义壁纸图片（仅本地）、GitHub Token（仅本地浏览器）
+- 本地备份：设置 → Data → **Export bookmarks as JSON**，随时导出
 
-### Sync principles (brief)
+### 同步原理（简要）
 
-- **Data sync ≠ code deploy**: daily operations (add/delete/drag bookmarks) only read/write `webdesk-data.json` via the GitHub API, done in seconds; only code file changes (`git push`) trigger a rebuild & redeploy — sync commits never trigger a deploy.
-- **Auto push**: 5 seconds after a local change, automatically pushed (no manual click).
-- **Auto pull**: on page load, compares the cloud `updatedAt` timestamp; prompts to load if the cloud is newer.
-- **Conflict handling**: before pushing, reads the cloud timestamp — if the cloud is strictly newer, the push is skipped (never overwrites others' changes); otherwise local wins (last-write-wins); SHA conflicts auto-retry.
-- **Verify**: after a change, wait 5–10 seconds, refresh the repo page — `webdesk-data.json` should show "just now".
+- **数据同步 ≠ 代码部署**：增删书签/拖图标等日常操作只通过 GitHub API 读写 `webdesk-data.json`，秒级完成；只有代码文件变更（`git push` 代码）才会触发重新构建部署，同步产生的提交不会触发部署
+- **自动推送**：本地数据变更后 5 秒自动推送（无需手动点击）
+- **自动拉取**：页面加载时对比云端 `updatedAt` 时间戳，云端较新则提示加载
+- **冲突处理**：推送前先读取云端时间戳，云端严格更新则跳过推送（不覆盖他人改动），否则以本地为准写入（last-write-wins）；推送遇 SHA 冲突时自动重试
+- **验证方法**：改动书签后等 5-10 秒，刷新仓库页面，`webdesk-data.json` 的修改时间应变为 "just now"，内容与本地一致
 
-### ⚠️ Multi-device notes (important)
+### ⚠️ 多设备使用注意事项（重要）
 
-- **No double-opening**: don't keep multiple WebDesk tabs open on the same device — tabs may hold different local data and overwrite each other.
-- **No simultaneous editing**: when two devices edit at once, the last successful push wins and the other's changes may be skipped. Recommended: edit, wait 5 seconds, then switch devices.
-- **No live updates**: after device A changes, device B needs to **refresh the page** (or click "Sync Now") to see the latest data.
-- **"Cloud update found" prompt on first open is normal**: it means the cloud is newer; click Load to sync.
+- **不要双开**：同一设备上不要同时开多个 WebDesk 标签页，不同标签页可能持有不同的本地数据，互相覆盖
+- **不要同时操作**：两台设备同时编辑时，以最后成功推送者为准，另一方的改动可能被跳过。建议"编辑完等 5 秒再切换设备"
+- **页面开着时不会自动收到更新**：设备 A 修改后，设备 B 需要**刷新页面**（或点 "Sync Now"）才能看到最新数据
+- **首次打开弹 "Cloud data updated. Load it?" 是正常行为**：说明云端数据比本地新，点 Load 即同步
 
-### ⚠️ Security warning
+### ⚠️ 安全警告
 
-- The GitHub Token lives in browser `localStorage` and could be exposed by XSS. Do not configure a token on public/trust-compromised machines; if you must, clear the site's `localStorage` (or browsing data) afterwards.
-- Set token expiry to 90 days and rotate regularly.
-- **Refreshing/clearing browser data may wipe the token**: some devices (e.g. tablets) clear `localStorage` on refresh — just paste the token again. This is normal behavior, not a bug.
+- GitHub Token 保存在浏览器 `localStorage` 中，有被 XSS 窃取的风险。请勿在公共电脑/不受信任的设备上配置 Token；如确需使用，用完后在浏览器开发者工具中清除该站点的 `localStorage`（或清除浏览数据）
+- Token 建议设置 90 天有效期并定期更换
+- **刷新/清除浏览器数据会导致 Token 丢失**：部分设备（如平板）刷新页面即清空 `localStorage`，需要重新粘贴 Token，属正常现象，不是 bug
 
-## Deploy to your own repo (from scratch)
+## 部署到自己的仓库（开发者自建）
 
-1. Push the code to your GitHub repo (`main` branch).
-2. Repo **Settings → Pages** → **Build and deployment** → Source: **GitHub Actions**.
-3. The built-in `.github/workflows/deploy.yml` builds and deploys automatically.
-4. Visit `https://<your-username>.github.io/<repo-name>/`.
+如果你想从零搭建而非 Fork：
 
-> ℹ️ The deploy workflow only triggers on code file changes (`src/`, configs, dependencies, etc.) — daily bookmark data sync (writing `webdesk-data.json`) never triggers a rebuild.
+1. 将代码推送到你的 GitHub 仓库（`main` 分支）
+2. 仓库 **Settings → Pages** → **Build and deployment** → Source 选择 **GitHub Actions**
+3. 推送代码后，仓库自带的 `.github/workflows/deploy.yml` 会自动构建并部署到 Pages
+4. 部署完成后访问 `https://<你的用户名>.github.io/<仓库名>/`
 
-## Development
+> ℹ️ 部署 workflow 仅在代码文件变更时触发（`src/`、配置、依赖等），日常书签数据同步（写入 `webdesk-data.json`）不会触发重新构建。
+
+## 开发
 
 ```bash
-npm run dev       # dev mode
-npm run build     # build to dist/
-npm run lint      # Oxlint checks
+npm run dev       # 开发模式
+npm run build     # 构建到 dist/
+npm run lint      # Oxlint 检查
 ```
 
-## Tech Stack
+## 技术栈
 
-Vite · React 19 · TypeScript · Tailwind CSS · @dnd-kit · lucide-react — pure static site, no backend required.
+Vite · React 19 · TypeScript · Tailwind CSS · @dnd-kit · lucide-react —— 纯静态站点，无需后端。
+
+## License
+
+[MIT](LICENSE)

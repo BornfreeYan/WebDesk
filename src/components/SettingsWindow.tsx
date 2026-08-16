@@ -132,7 +132,7 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
 
         {/* 内容 */}
         {!isMinimized && (
-        <div className={`px-5 py-5 space-y-6 ${isMaximized ? 'max-h-[70vh] overflow-y-auto' : ''}`}>
+        <div className={`px-5 py-5 space-y-6 overflow-y-auto ${isMaximized ? 'max-h-[70vh]' : 'max-h-[65vh]'}`}>
           {/* SYSTEM */}
           <div>
             <h3 className="text-[11px] font-bold opacity-40 uppercase tracking-widest mb-3">System</h3>

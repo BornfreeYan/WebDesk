@@ -25,8 +25,8 @@ export function ClockWidget({ state, isDark, accentColor, onPositionChange, onCl
     return () => clearInterval(t);
   }, []);
 
-  const time = now.toLocaleTimeString('zh-CN', { hour12: false });
-  const date = now.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'long' });
+  const time = now.toLocaleTimeString('en-GB', { hour12: false });
+  const date = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', weekday: 'long' });
 
   return (
     <div
