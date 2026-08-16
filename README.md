@@ -24,6 +24,14 @@ npm run dev
 - 同步范围：书签（含文件夹层级）、图标位置、Dock 配置、主题设置
 - 不同步：自定义壁纸图片（仅本地）、GitHub Token（仅本地浏览器）
 
+### 同步原理（简要）
+
+- **数据同步 ≠ 代码部署**：增删书签/拖图标等日常操作只通过 GitHub API 读写 `webdesk-data.json`，秒级完成，**不会触发部署 workflow**；只有 `git push` 代码变更才会触发重新构建部署
+- **自动推送**：本地数据变更后 5 秒自动推送（无需手动点击）
+- **自动拉取**：页面加载时对比云端 `updatedAt` 时间戳，云端较新则提示加载
+- **冲突处理**：推送前先读取云端时间戳，云端严格更新则跳过推送（不覆盖他人改动），否则以本地为准写入（last-write-wins）
+- **验证方法**：改动书签后等 5-10 秒，刷新仓库页面，`webdesk-data.json` 的修改时间应变为 "just now"，内容与本地一致
+
 ## GitHub 同步配置教程
 
 ### 第 1 步：创建 Token（Fine-grained Token）
@@ -68,9 +76,11 @@ npm run dev
 - **自动推送**：本地书签变更后 5 秒自动同步到云端
 - **自动拉取**：页面加载时自动检查云端更新，云端较新时会提示是否加载
 
-验证方式：点击"立即同步"后，到你的 GitHub 仓库页面刷新，能看到根目录下出现 `webdesk-data.json`。在另一台设备打开同一站点，即可看到相同的数据。
+验证方式：添加或删除一个书签，等 5-10 秒，到仓库页面刷新，看到 `webdesk-data.json` 的修改时间变为 "just now" 且内容同步，即配置成功。
 
 ## 部署到 GitHub Pages
+
+### 方式一：部署你自己的仓库（已推代码）
 
 1. 将代码推送到你的 GitHub 仓库（`main` 分支）
 2. 仓库 **Settings → Pages** → **Build and deployment** → Source 选择 **GitHub Actions**
@@ -78,6 +88,18 @@ npm run dev
 4. 部署完成后访问 `https://<你的用户名>.github.io/<仓库名>/`
 
 > 首次部署完成后，在任意设备打开该地址，填入你的 Token 即可同步书签数据。
+
+### 方式二：Fork 使用（他人复用，待验证）
+
+> ⚠️ 以下流程基于设计预期，fork 后的具体表现（如 workflow 是否自动运行）尚未实际验证，欢迎反馈。
+
+1. **Fork 本仓库** 到自己的 GitHub 账号
+2. （可选）删除 fork 仓库根目录下的 `webdesk-data.json`——那是原作者的同步数据，删除后自己的数据从零开始
+3. 仓库 **Settings → Pages** → Source 选择 **GitHub Actions**，并到 **Actions** 页面手动运行一次 "Deploy to GitHub Pages" workflow（fork 的仓库不会自动触发首次构建）
+4. 按上文"创建 Token"教程，为自己的 fork 仓库创建 Fine-grained Token（Contents: Read & Write）
+5. 访问 `https://<你的用户名>.github.io/<仓库名>/`，在设置中填入自己的 Token / Owner / Repo / Branch，即可作为独立实例使用
+
+> 每次 push 代码后 Pages 会自动重新部署；日常书签数据变更不触发部署，仅写入 `webdesk-data.json`。
 
 ## 开发
 
