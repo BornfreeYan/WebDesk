@@ -43,7 +43,9 @@ export function useSync(
           remoteTime = 0;
         }
       }
-      if (remote && remoteTime >= (dataRef.current.updatedAt ?? 0)) {
+      // 只有远端严格更新才跳过：本地时间戳只在推送成功后更新，
+      // 本地内容变更（如删除）不会刷新时间戳，相等时必须推送
+      if (remote && remoteTime > (dataRef.current.updatedAt ?? 0)) {
         setStatus({ type: 'success', message: '云端已是最新，跳过推送' });
         return;
       }
