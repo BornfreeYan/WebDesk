@@ -12,8 +12,9 @@
 ## 当前状态
 
 - **MVP 已完成**：本地桌面书签管理器核心功能已实现
-- **v1 已完成**：GitHub 数据同步（Token 配置 + 跨设备恢复）已实现并通过双设备验证
-- **上线阶段**：代码推送至 BornfreeYan/WebDesk，GitHub Pages 部署 workflow 已就绪
+- **v1 已完成**：GitHub 数据同步（Token 配置 + 跨设备恢复）已实现并通过多设备验证
+- **上线已完成**：代码推送至 BornfreeYan/WebDesk，GitHub Pages 部署 workflow 已就绪，Fork 分发流程已验证
+- **v1.1 已完成**：桌面时钟 + 待办小组件（毛玻璃、可拖拽、本地存储）、右上角全局搜索、删除按钮视觉收敛
 - **技术栈已确定**：Vite + React 19 + TypeScript + Tailwind CSS v3 + @dnd-kit/core + lucide-react
 - **产品方向已收敛**：形态 A（桌面风格书签管理器），目标用户为开发者
 

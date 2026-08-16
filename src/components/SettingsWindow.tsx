@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import type { DesktopSettings, SyncConfig, SyncStatus } from '../types';
+import type { DesktopSettings, SyncConfig, SyncStatus, WidgetsData } from '../types';
 import type { TestResult } from '../lib/githubSync';
 import { X, Moon, Sun, Cloud, RefreshCw, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
@@ -13,6 +13,8 @@ interface SettingsWindowProps {
   syncStatus: SyncStatus;
   onTestConnection: (config: SyncConfig) => Promise<TestResult>;
   onManualSync: () => void;
+  widgets: WidgetsData;
+  onWidgetsChange: (widgets: WidgetsData) => void;
 }
 
 const WALLPAPER_OPTIONS = [
@@ -22,7 +24,7 @@ const WALLPAPER_OPTIONS = [
   { key: 'custom', label: 'Custom' },
 ];
 
-export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, syncConfig, onSyncConfigChange, syncStatus, onTestConnection, onManualSync }: SettingsWindowProps) {
+export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, syncConfig, onSyncConfigChange, syncStatus, onTestConnection, onManualSync, widgets, onWidgetsChange }: SettingsWindowProps) {
   const [position, setPosition] = useState({ x: Math.max(20, window.innerWidth / 2 - 200), y: 80 });
   const [isDragging, setIsDragging] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -298,6 +300,31 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
               />
               <span className="text-sm">Show dock</span>
             </label>
+          </div>
+
+          {/* WIDGETS */}
+          <div>
+            <h3 className="text-[11px] font-bold opacity-40 uppercase tracking-widest mb-3">Widgets</h3>
+            <div className="space-y-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={widgets.clock.enabled}
+                  onChange={(e) => onWidgetsChange({ ...widgets, clock: { ...widgets.clock, enabled: e.target.checked } })}
+                  className="w-4 h-4 rounded accent-blue-500"
+                />
+                <span className="text-sm">Clock</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={widgets.todo.enabled}
+                  onChange={(e) => onWidgetsChange({ ...widgets, todo: { ...widgets.todo, enabled: e.target.checked } })}
+                  className="w-4 h-4 rounded accent-blue-500"
+                />
+                <span className="text-sm">Todo</span>
+              </label>
+            </div>
           </div>
 
           {/* GITHUB SYNC */}

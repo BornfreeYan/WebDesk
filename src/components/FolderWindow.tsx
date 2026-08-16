@@ -165,7 +165,7 @@ export function FolderWindow({
                       onDelete(item.id);
                       setContextMenu(null);
                     }}
-                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                    className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-black/30 text-white backdrop-blur-md flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-all shadow-sm hover:bg-red-500"
                   >
                     <X size={10} strokeWidth={3} />
                   </button>

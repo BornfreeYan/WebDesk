@@ -5,10 +5,18 @@ import { Dock } from './components/Dock';
 import { SettingsWindow } from './components/SettingsWindow';
 import { BookmarkImporter } from './components/BookmarkImporter';
 import { FolderWindow } from './components/FolderWindow';
+import { SearchBar } from './components/SearchBar';
+import { ClockWidget } from './components/widgets/ClockWidget';
+import { TodoWidget } from './components/widgets/TodoWidget';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useSync } from './hooks/useSync';
 import { defaultData } from './data/defaultBookmarks';
-import type { DesktopData, DesktopSettings, Bookmark, SyncConfig } from './types';
+import type { DesktopData, DesktopSettings, Bookmark, SyncConfig, WidgetsData } from './types';
+
+const defaultWidgets: WidgetsData = {
+  clock: { x: 24, y: 90, enabled: true },
+  todo: { x: 24, y: 260, enabled: true, items: [] },
+};
 
 function App() {
   const [data, setData] = useLocalStorage<DesktopData>('webdesk-data-v3', defaultData);
@@ -18,6 +26,7 @@ function App() {
     repo: '',
     branch: 'main',
   });
+  const [widgets, setWidgets] = useLocalStorage<WidgetsData>('webdesk-widgets-v1', defaultWidgets);
   const sync = useSync(data, setData, syncConfig);
   const [showSettings, setShowSettings] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
@@ -299,6 +308,39 @@ function App() {
           书签: {data.bookmarks.length} | 文件夹: {data.bookmarks.filter(b => b.type === 'folder').length}
         </div>
 
+        {/* 全局搜索 */}
+        <SearchBar
+          bookmarks={data.bookmarks}
+          isDark={isDark}
+          onOpenLink={(url) => window.open(url, '_blank')}
+          onOpenFolder={(id) => {
+            if (!openFolders.includes(id)) {
+              setOpenFolders((prev) => [...prev, id]);
+            }
+          }}
+        />
+
+        {/* 桌面小组件 */}
+        {widgets.clock.enabled && (
+          <ClockWidget
+            state={widgets.clock}
+            isDark={isDark}
+            accentColor={data.settings.accentColor}
+            onPositionChange={(pos) => setWidgets((prev) => ({ ...prev, clock: { ...prev.clock, ...pos } }))}
+            onClose={() => setWidgets((prev) => ({ ...prev, clock: { ...prev.clock, enabled: false } }))}
+          />
+        )}
+        {widgets.todo.enabled && (
+          <TodoWidget
+            state={widgets.todo}
+            isDark={isDark}
+            accentColor={data.settings.accentColor}
+            onPositionChange={(pos) => setWidgets((prev) => ({ ...prev, todo: { ...prev.todo, ...pos } }))}
+            onItemsChange={(items) => setWidgets((prev) => ({ ...prev, todo: { ...prev.todo, items } }))}
+            onClose={() => setWidgets((prev) => ({ ...prev, todo: { ...prev.todo, enabled: false } }))}
+          />
+        )}
+
         {/* 云端更新提示 */}
         {sync.pendingRemote && (
           <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[60] animate-window-enter">
@@ -368,6 +410,8 @@ function App() {
             syncStatus={sync.status}
             onTestConnection={sync.testConnection}
             onManualSync={() => sync.manualSync()}
+            widgets={widgets}
+            onWidgetsChange={setWidgets}
           />
         )}
 

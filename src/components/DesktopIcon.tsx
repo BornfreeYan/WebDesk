@@ -108,7 +108,7 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
               e.stopPropagation();
               onDelete(bookmark.id);
             }}
-            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:scale-110"
+            className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-black/30 text-white backdrop-blur-md flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-all shadow-md hover:scale-110 hover:bg-red-500"
           >
             <X size={12} strokeWidth={3} />
           </button>

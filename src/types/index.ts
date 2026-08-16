@@ -37,3 +37,20 @@ export type SyncStatus =
   | { type: 'syncing' }
   | { type: 'success'; message: string }
   | { type: 'error'; message: string };
+
+export interface TodoItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+export interface WidgetState {
+  x: number;
+  y: number;
+  enabled: boolean;
+}
+
+export interface WidgetsData {
+  clock: WidgetState;
+  todo: WidgetState & { items: TodoItem[] };
+}
