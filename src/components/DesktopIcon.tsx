@@ -175,7 +175,7 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
           />
         ) : (
           <span
-            className={`text-[13px] font-medium px-2.5 py-1 rounded-lg max-w-[88px] truncate text-center shadow-sm leading-tight ${
+            className={`text-[12px] font-medium px-2 py-1 rounded-lg max-w-[88px] text-center shadow-sm leading-snug line-clamp-2 break-words ${
               isDark
                 ? 'bg-black/40 text-white/90 backdrop-blur-sm'
                 : 'bg-white/70 text-gray-700 backdrop-blur-sm'

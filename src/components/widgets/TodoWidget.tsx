@@ -14,6 +14,8 @@ interface TodoWidgetProps {
 
 export function TodoWidget({ state, isDark, accentColor, onPositionChange, onItemsChange, onClose }: TodoWidgetProps) {
   const [input, setInput] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
   const { position, onPointerDown, onPointerMove, onPointerUp } = useWidgetDrag(
     { x: state.x, y: state.y },
     onPositionChange,
@@ -34,6 +36,19 @@ export function TodoWidget({ state, isDark, accentColor, onPositionChange, onIte
 
   const removeItem = (id: string) => {
     onItemsChange(state.items.filter((it) => it.id !== id));
+  };
+
+  const startEdit = (item: TodoItem) => {
+    setEditingId(item.id);
+    setEditValue(item.text);
+  };
+
+  const commitEdit = (id: string) => {
+    const text = editValue.trim();
+    if (text) {
+      onItemsChange(state.items.map((it) => (it.id === id ? { ...it, text } : it)));
+    }
+    setEditingId(null);
   };
 
   return (
@@ -92,13 +107,13 @@ export function TodoWidget({ state, isDark, accentColor, onPositionChange, onIte
           {state.items.map((item) => (
             <div
               key={item.id}
-              className="group flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-black/5 transition-colors"
+              className="group flex items-start gap-2 px-2 py-1.5 rounded-xl hover:bg-black/5 transition-colors"
               style={isDark ? { backgroundColor: 'rgba(255,255,255,0.04)' } : { backgroundColor: 'rgba(0,0,0,0.03)' }}
               onPointerDown={(e) => e.stopPropagation()}
             >
               <button
                 onClick={() => toggleItem(item.id)}
-                className="w-4 h-4 shrink-0 rounded-full border flex items-center justify-center transition-all cursor-default"
+                className="w-4 h-4 shrink-0 rounded-full border flex items-center justify-center transition-all cursor-default mt-0.5"
                 style={{
                   borderColor: accentColor,
                   backgroundColor: item.done ? accentColor : 'transparent',
@@ -106,16 +121,36 @@ export function TodoWidget({ state, isDark, accentColor, onPositionChange, onIte
               >
                 {item.done && <span className="text-white text-[9px] leading-none">✓</span>}
               </button>
-              <span
-                className={`flex-1 min-w-0 text-sm truncate transition-all ${
-                  item.done ? 'line-through opacity-40' : ''
-                }`}
-              >
-                {item.text}
-              </span>
+              {editingId === item.id ? (
+                <input
+                  autoFocus
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitEdit(item.id);
+                    if (e.key === 'Escape') setEditingId(null);
+                  }}
+                  onBlur={() => commitEdit(item.id)}
+                  className={`flex-1 min-w-0 px-2 py-0.5 rounded-lg text-sm outline-none transition-all border ${
+                    isDark
+                      ? 'bg-black/30 border-white/10 text-white placeholder:text-white/40 focus:border-white/30'
+                      : 'bg-white/50 border-white/60 text-gray-800 focus:border-gray-300'
+                  }`}
+                />
+              ) : (
+                <span
+                  onClick={() => !item.done && startEdit(item)}
+                  title="点击编辑"
+                  className={`flex-1 min-w-0 text-sm break-words leading-snug transition-all cursor-text ${
+                    item.done ? 'line-through opacity-40' : ''
+                  }`}
+                >
+                  {item.text}
+                </span>
+              )}
               <button
                 onClick={() => removeItem(item.id)}
-                className="w-5 h-5 shrink-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-50 hover:opacity-100 hover:bg-red-500/10 transition-all cursor-default"
+                className="w-5 h-5 shrink-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-50 hover:opacity-100 hover:bg-red-500/10 transition-all cursor-default mt-0.5"
               >
                 <X size={11} />
               </button>

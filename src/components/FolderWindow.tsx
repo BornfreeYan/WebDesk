@@ -488,7 +488,7 @@ function FolderItem({
           }`}
         />
       ) : (
-        <span className={`text-[11px] font-medium text-center leading-tight max-w-full truncate px-1 ${isDark ? 'text-white/80' : 'text-gray-700'}`}>
+        <span className={`text-[11px] font-medium text-center leading-snug max-w-full line-clamp-2 break-words px-1 ${isDark ? 'text-white/80' : 'text-gray-700'}`}>
           {item.name}
         </span>
       )}
