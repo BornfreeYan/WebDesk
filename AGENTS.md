@@ -1,44 +1,52 @@
 # WebDesk — AGENTS.md
 
-个人 Web 桌面的探索性项目。MVP 已实现并构建通过。
+个人 Web 桌面的探索性项目。已竣工并上线。
 
 ## 工作流
 
 1. **Discovery** ✅ — `references/discovery/` 下四份文档已填充完毕
 2. **PRD** ✅ — `references/docs/PRD.md` 已确认
 3. **MVP Vibecoding** ✅ — 已完成并构建通过
-4. **v1 迭代** — 待开始（需 compact 上下文后推进）
+4. **v1（GitHub 同步）** ✅ — 已完成并通过多设备验证
+5. **上线（Fork 分发）** ✅ — 已部署至 GitHub Pages，Fork 流程经新账号实测验证
+6. **v1.1（小组件与效率）** ✅ — 已完成
+7. **收尾** 🔄 — 双语 README 已就绪；待拍摄演示视频/GIF 放入 README
 
 ## 当前状态
 
-- **MVP 已完成**：本地桌面书签管理器核心功能已实现
-- **v1 已完成**：GitHub 数据同步（Token 配置 + 跨设备恢复）已实现并通过多设备验证
-- **上线已完成**：代码推送至 BornfreeYan/WebDesk，GitHub Pages 部署 workflow 已就绪，Fork 分发流程已验证
-- **v1.1 已完成**：桌面时钟 + 待办小组件（毛玻璃、可拖拽、本地存储）、右上角全局搜索、删除按钮视觉收敛
-- **技术栈已确定**：Vite + React 19 + TypeScript + Tailwind CSS v3 + @dnd-kit/core + lucide-react
-- **产品方向已收敛**：形态 A（桌面风格书签管理器），目标用户为开发者
+- **项目已竣工**：核心功能全部完成并上线
+- **线上地址**：https://bornfreeyan.github.io/WebDesk/
+- **仓库**：BornfreeYan/WebDesk（Fork 分发已验证，README 提供完整教程）
+- **技术栈**：Vite + React 19 + TypeScript + Tailwind CSS v3 + @dnd-kit/core + lucide-react
+- **产品方向**：形态 A（桌面风格书签管理器），目标用户为开发者
+- **README**：中文默认（README.md）+ 英文（README.en.md）双语，含 Fork/Token/同步教程
+- **License**：MIT
 
-## MVP 已实现功能
+## 已实现功能总览
 
-- 空桌面启动（无预置书签）
-- 单击图标在新标签页打开链接
-- 图标自由拖拽 + 边界限制（不进入 Dock 栏区域）
-- 手动添加书签 / 导入浏览器 HTML 书签
-- 悬停删除按钮（红色叉）
-- 右键菜单：固定到 Dock / 从 Dock 移除 / 删除
-- macOS 风格设置窗口（红/黄/绿三按钮，可拖拽，最小化/最大化）
-- 亮暗模式切换 + 主题色选择
-- 数据持久化（localStorage）
+- 空桌面启动（无预置书签）；单击图标新标签页打开
+- 图标自由拖拽 + 边界限制；macOS 风格 Dock（悬停放大、打开指示点、accent 描边）
+- 手动添加 / 浏览器 HTML 书签导入（平铺解析）
+- 文件夹系统：嵌套、双击开窗、窗口内拖拽归入、右键"移动到文件夹"树形选择、移到桌面、递归重命名/删除、防循环
+- 全局搜索（右上角，模糊匹配所有层级）
+- 桌面小组件：时钟（毛玻璃）、待办（增删勾选编辑、多行显示），均可拖拽、本地存储、设置开关
+- 设置窗口：红/黄/绿三按钮、可拖拽、最大化/最小化、内容滚动
+- 亮暗模式、System Accent 主题色、多款壁纸 + 自定义上传
+- GitHub 同步：Fine-grained Token 配置、加载自动拉取、变更 5s 自动推送、时间戳冲突处理、409 自动重试、壁纸不同步
+- 数据本地备份：设置 → Export bookmarks as JSON
+- 全站英文 UI（书签名/文件夹名为用户数据，不翻译）
 
-## 后续方向（v1）
+## 文档索引
 
-- GitHub API 同步（Token 配置 + 跨设备恢复）
-- 图标 favicon 自动获取
-- 文件夹归纳（用户已提出需求，待 compact 后推进）
-- 壁纸背景切换（设置中已有 UI，功能待实现）
+- `references/discovery/`：Brainstorm / Research / User Stories / Questions（四份）
+- `references/docs/PRD.md`：产品需求文档（含 v1.1 章节与里程碑）
+- `README.md` / `README.en.md`：用户文档（中文/英文双语）
+- `AGENTS.md`：本文件
 
 ## Agent 注意事项
 
-- **不要锁定 v1 技术栈**：当前技术栈仅服务 MVP，v1 可重新评估
 - `references/` 目录为唯一信息源，后续变更需同步更新
-- MVP 代码已迁移至根目录，不再嵌套 `webdesk/` 子目录
+- 用户数据存储：localStorage `webdesk-data-v3`（书签）、`webdesk-widgets-v1`（小组件）、`webdesk-sync-config`（Token）
+- 同步数据文件：仓库根目录 `webdesk-data.json`（含 updatedAt 时间戳）
+- 部署 workflow 仅代码变更触发（`src/`、配置等），数据同步不触发部署
+- 代码已迁移至根目录，不再嵌套 `webdesk/` 子目录
