@@ -17,26 +17,28 @@ npm install
 npm run dev
 ```
 
-## 数据存储
+## 部署与使用（推荐：Fork 方式）
 
-- 默认数据保存在浏览器 `localStorage`（key: `webdesk-data-v3`），无需任何配置
-- 配置 GitHub 同步后，数据同时备份到仓库根目录的 `webdesk-data.json`
-- 同步范围：书签（含文件夹层级）、图标位置、Dock 配置、主题设置
-- 不同步：自定义壁纸图片（仅本地）、GitHub Token（仅本地浏览器）
+### 第 0 步：准备 GitHub 仓库
 
-### 同步原理（简要）
+**必须先有一个仓库**，因为创建 Token 时需要指定一个仓库来授权。如果你还没有，请先 Fork 本仓库（见下），或自己新建一个空仓库。
 
-- **数据同步 ≠ 代码部署**：增删书签/拖图标等日常操作只通过 GitHub API 读写 `webdesk-data.json`，秒级完成；只有代码文件变更（`git push` 代码）才会触发重新构建部署，同步产生的提交不会触发部署
-- **自动推送**：本地数据变更后 5 秒自动推送（无需手动点击）
-- **自动拉取**：页面加载时对比云端 `updatedAt` 时间戳，云端较新则提示加载
-- **冲突处理**：推送前先读取云端时间戳，云端严格更新则跳过推送（不覆盖他人改动），否则以本地为准写入（last-write-wins）
-- **验证方法**：改动书签后等 5-10 秒，刷新仓库页面，`webdesk-data.json` 的修改时间应变为 "just now"，内容与本地一致
+### 第 1 步：Fork 本仓库
 
-> ⚠️ **安全警告**：GitHub Token 保存在浏览器 `localStorage` 中，有被 XSS 窃取的风险。请勿在公共电脑/不受信任的设备上配置 Token；如确需使用，用完后在浏览器开发者工具中清除该站点的 `localStorage`（或清除浏览数据）。Token 建议设置 90 天有效期并定期更换。
+1. 打开本仓库页面，点击右上角 **Fork**，选到你的新账号/新仓库
+2. Fork 完成后，**建议删除 fork 仓库根目录下的 `webdesk-data.json`**（那是原作者的同步数据），删除后你的数据从零开始；不删除则继承原作者的书签数据
 
-## GitHub 同步配置教程
+### 第 2 步：开启 GitHub Actions 并部署
 
-### 第 1 步：创建 Token（Fine-grained Token）
+> ⚠️ Fork 出来的仓库**默认 Actions 是关闭的**，必须手动开启。
+
+1. 进入 fork 仓库 → **Actions** 标签页 → 点击绿色按钮 **"I understand my workflows, go ahead and enable them"**（开启 GitHub Action 功能）
+2. 进入 **Settings → Pages** → **Build and deployment** → Source 选择 **GitHub Actions**（**不要选 Deploy from a branch**）
+3. 回到 **Actions** 标签页 → 左侧列表点击 **Deploy to GitHub Pages** → 页面出现 "This workflow has a workflow_dispatch event trigger" 提示 → 点击右侧 **Run workflow** 按钮
+4. 等待约 30 秒，workflow 变绿即部署完成
+5. 访问 `https://<你的用户名>.github.io/<仓库名>/`，看到 WebDesk 桌面即上线成功
+
+### 第 3 步：创建 Token（Fine-grained Token）
 
 1. 打开 GitHub → 右上角头像 → **Settings**
 2. 左侧底部 → **Developer settings**
@@ -47,7 +49,7 @@ npm run dev
 |---|---|
 | **Token name** | 任意，如 `WebDesk` |
 | **Expiration** | 建议 90 天（过期后需在 WebDesk 中重新配置） |
-| **Repository access** | **Only select repositories** → 勾选你的 WebDesk 仓库 |
+| **Repository access** | **Only select repositories** → 勾选你的 fork 仓库 |
 
 5. **关键步骤**：在 **Repository permissions** 区域（注意：不是上方 *Account permissions*）找到 **Contents**，设置为 **Read and write**
 
@@ -59,51 +61,62 @@ npm run dev
 
 6. 点击 **Generate token**，**立即复制**（Token 只显示一次）
 
-### 第 2 步：在 WebDesk 中填写
+### 第 4 步：在 WebDesk 中填写并同步
 
-打开设置窗口 → **GitHub Sync** 区块，填写：
+打开你的 WebDesk 站点 → 设置窗口 → **GitHub Sync** 区块，填写：
 
 | 设置项 | 填写值 |
 |---|---|
-| **Token** | 第 1 步复制的 Token |
+| **Token** | 第 3 步复制的 Token |
 | **Owner** | 你的 GitHub 用户名（如 `BornfreeYan`） |
 | **Repo** | 仓库名（如 `WebDesk`） |
 | **Branch** | `main` |
 
-点击 **测试连接**，显示"连接成功"即完成。
+点击 **测试连接**，显示"连接成功"即完成配置。
 
-### 第 3 步：同步
+### 第 5 步：验证同步
 
-- **立即同步**：点击设置面板的"立即同步"按钮
-- **自动推送**：本地书签变更后 5 秒自动同步到云端
-- **自动拉取**：页面加载时自动检查云端更新，云端较新时会提示是否加载
+- 添加或删除一个书签，等 5-10 秒
+- 到你的仓库页面刷新，看到根目录 `webdesk-data.json` 的修改时间变为 "just now" 且内容同步，即配置成功
 
-验证方式：添加或删除一个书签，等 5-10 秒，到仓库页面刷新，看到 `webdesk-data.json` 的修改时间变为 "just now" 且内容同步，即配置成功。
+## 数据存储与同步
 
-## 部署到 GitHub Pages
+- 默认数据保存在浏览器 `localStorage`（key: `webdesk-data-v3`），无需任何配置
+- 配置 GitHub 同步后，数据同时备份到仓库根目录的 `webdesk-data.json`
+- 同步范围：书签（含文件夹层级）、图标位置、Dock 配置、主题设置
+- 不同步：自定义壁纸图片（仅本地）、GitHub Token（仅本地浏览器）
 
-### 方式一：部署你自己的仓库（已推代码）
+### 同步原理（简要）
+
+- **数据同步 ≠ 代码部署**：增删书签/拖图标等日常操作只通过 GitHub API 读写 `webdesk-data.json`，秒级完成；只有代码文件变更（`git push` 代码）才会触发重新构建部署，同步产生的提交不会触发部署
+- **自动推送**：本地数据变更后 5 秒自动推送（无需手动点击）
+- **自动拉取**：页面加载时对比云端 `updatedAt` 时间戳，云端较新则提示加载
+- **冲突处理**：推送前先读取云端时间戳，云端严格更新则跳过推送（不覆盖他人改动），否则以本地为准写入（last-write-wins）；推送遇 SHA 冲突时自动重试
+- **验证方法**：改动书签后等 5-10 秒，刷新仓库页面，`webdesk-data.json` 的修改时间应变为 "just now"，内容与本地一致
+
+### ⚠️ 多设备使用注意事项（重要）
+
+- **不要双开**：同一设备上不要同时开多个 WebDesk 标签页，不同标签页可能持有不同的本地数据，互相覆盖
+- **不要同时操作**：两台设备同时编辑时，以最后成功推送者为准，另一方的改动可能被跳过。建议"编辑完等 5 秒再切换设备"
+- **页面开着时不会自动收到更新**：设备 A 修改后，设备 B 需要**刷新页面**（或点"立即同步"）才能看到最新数据
+- **首次打开弹"发现云端更新"是正常行为**：说明云端数据比本地新，点"加载"即同步
+
+### ⚠️ 安全警告
+
+- GitHub Token 保存在浏览器 `localStorage` 中，有被 XSS 窃取的风险。请勿在公共电脑/不受信任的设备上配置 Token；如确需使用，用完后在浏览器开发者工具中清除该站点的 `localStorage`（或清除浏览数据）
+- Token 建议设置 90 天有效期并定期更换
+- **刷新/清除浏览器数据会导致 Token 丢失**：部分设备（如平板）刷新页面即清空 `localStorage`，需要重新粘贴 Token，属正常现象，不是 bug
+
+## 部署到自己的仓库（开发者自建）
+
+如果你想从零搭建而非 Fork：
 
 1. 将代码推送到你的 GitHub 仓库（`main` 分支）
 2. 仓库 **Settings → Pages** → **Build and deployment** → Source 选择 **GitHub Actions**
 3. 推送代码后，仓库自带的 `.github/workflows/deploy.yml` 会自动构建并部署到 Pages
 4. 部署完成后访问 `https://<你的用户名>.github.io/<仓库名>/`
 
-> 首次部署完成后，在任意设备打开该地址，填入你的 Token 即可同步书签数据。
-
 > ℹ️ 部署 workflow 仅在代码文件变更时触发（`src/`、配置、依赖等），日常书签数据同步（写入 `webdesk-data.json`）不会触发重新构建。
-
-### 方式二：Fork 使用（他人复用，待验证）
-
-> ⚠️ 以下流程基于设计预期，fork 后的具体表现（如 workflow 是否自动运行）尚未实际验证，欢迎反馈。
-
-1. **Fork 本仓库** 到自己的 GitHub 账号
-2. （可选）删除 fork 仓库根目录下的 `webdesk-data.json`——那是原作者的同步数据，删除后自己的数据从零开始
-3. 仓库 **Settings → Pages** → Source 选择 **GitHub Actions**，并到 **Actions** 页面手动运行一次 "Deploy to GitHub Pages" workflow（fork 的仓库不会自动触发首次构建）
-4. 按上文"创建 Token"教程，为自己的 fork 仓库创建 Fine-grained Token（Contents: Read & Write）
-5. 访问 `https://<你的用户名>.github.io/<仓库名>/`，在设置中填入自己的 Token / Owner / Repo / Branch，即可作为独立实例使用
-
-> 每次 push 代码后 Pages 会自动重新部署；日常书签数据变更不触发部署，仅写入 `webdesk-data.json`。
 
 ## 开发
 
