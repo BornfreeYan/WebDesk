@@ -8,10 +8,11 @@ interface DesktopProps {
   onToggleDock: (id: string) => void;
   onOpenFolder: (id: string) => void;
   onRename: (id: string, newName: string) => void;
+  onOpenMoveDialog: (itemId: string, itemName: string) => void;
   dockItems: string[];
 }
 
-export function Desktop({ bookmarks, isDark, onDelete, onToggleDock, onOpenFolder, onRename, dockItems }: DesktopProps) {
+export function Desktop({ bookmarks, isDark, onDelete, onToggleDock, onOpenFolder, onRename, onOpenMoveDialog, dockItems }: DesktopProps) {
   return (
     <div className="absolute inset-0 bottom-[110px] p-6 overflow-auto">
 
@@ -24,6 +25,7 @@ export function Desktop({ bookmarks, isDark, onDelete, onToggleDock, onOpenFolde
           onToggleDock={onToggleDock}
           onOpenFolder={onOpenFolder}
           onRename={onRename}
+          onOpenMoveDialog={onOpenMoveDialog}
           isInDock={dockItems.includes(bookmark.id)}
         />
       ))}

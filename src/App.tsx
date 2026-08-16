@@ -8,6 +8,7 @@ import { FolderWindow } from './components/FolderWindow';
 import { SearchBar } from './components/SearchBar';
 import { ClockWidget } from './components/widgets/ClockWidget';
 import { TodoWidget } from './components/widgets/TodoWidget';
+import { MoveToFolderDialog } from './components/MoveToFolderDialog';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useSync } from './hooks/useSync';
 import { defaultData } from './data/defaultBookmarks';
@@ -33,6 +34,7 @@ function App() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newBookmark, setNewBookmark] = useState({ name: '', url: '' });
   const [openFolders, setOpenFolders] = useState<string[]>([]);
+  const [moveDialog, setMoveDialog] = useState<{ itemId: string; itemName: string } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -53,8 +55,14 @@ function App() {
         const dragged = prev.bookmarks.find((b) => b.id === id);
         if (!dragged) return prev;
         const draggedBookmark = dragged;
-        // 不能把自己拖入自己，不能把文件夹拖入文件夹
-        if (draggedBookmark.type === 'folder') return prev;
+        // 不能把自己拖入自己
+        if (id === folderId) return prev;
+        // 防循环：文件夹不能拖入自身子孙
+        if (draggedBookmark.type === 'folder' && draggedBookmark.children) {
+          const contains = (items: Bookmark[]): boolean =>
+            items.some((b) => b.id === folderId || (b.children && contains(b.children)));
+          if (contains(draggedBookmark.children)) return prev;
+        }
 
         // 从桌面书签列表中移除
         const newBookmarks = prev.bookmarks.filter((b) => b.id !== id);
@@ -420,6 +428,7 @@ function App() {
             }
           }}
           onRename={handleRename}
+          onOpenMoveDialog={(itemId, itemName) => setMoveDialog({ itemId, itemName })}
           dockItems={data.dockItems}
         />
 
@@ -491,6 +500,22 @@ function App() {
             onMoveToFolder={handleMoveToFolder}
           />
         ))}
+
+        {/* 移动到文件夹对话框（桌面图标右键） */}
+        {moveDialog && (
+          <MoveToFolderDialog
+            itemId={moveDialog.itemId}
+            itemName={moveDialog.itemName}
+            allBookmarks={data.bookmarks}
+            isDark={isDark}
+            accentColor={data.settings.accentColor}
+            onSelect={(targetId) => {
+              handleMoveToFolder(moveDialog.itemId, targetId);
+              setMoveDialog(null);
+            }}
+            onClose={() => setMoveDialog(null)}
+          />
+        )}
 
         {/* 添加书签弹窗 */}
         {showAddDialog && (

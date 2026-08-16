@@ -10,10 +10,11 @@ interface DesktopIconProps {
   onToggleDock: (id: string) => void;
   onOpenFolder: (id: string) => void;
   onRename: (id: string, newName: string) => void;
+  onOpenMoveDialog: (itemId: string, itemName: string) => void;
   isInDock: boolean;
 }
 
-export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFolder, onRename, isInDock }: DesktopIconProps) {
+export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFolder, onRename, onOpenMoveDialog, isInDock }: DesktopIconProps) {
   const { attributes, listeners = {}, setNodeRef, transform, isDragging } = useDraggable({
     id: bookmark.id,
   });
@@ -215,6 +216,17 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
             >
               <Pin size={14} className={isInDock ? 'text-blue-400' : ''} />
               {isInDock ? '从 Dock 移除' : '固定到 Dock'}
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenMoveDialog(bookmark.id, bookmark.name);
+                setShowContextMenu(false);
+              }}
+              className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
+            >
+              <Folder size={14} className="opacity-70" />
+              移动到文件夹…
             </button>
             <div className={`h-px mx-2 my-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
             <button
