@@ -28,10 +28,8 @@ const WALLPAPER_OPTIONS = [
 ];
 
 export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zIndex, onFocus, syncConfig, onSyncConfigChange, syncStatus, onTestConnection, onManualSync, widgets, onWidgetsChange, onExportData }: SettingsWindowProps) {
-  const [position, setPosition] = useState({ x: Math.max(20, window.innerWidth / 2 - 200), y: 80 });
+  const [position, setPosition] = useState({ x: Math.max(20, window.innerWidth / 2 - 190), y: Math.max(40, window.innerHeight * 0.1) });
   const [isDragging, setIsDragging] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [isMaximized, setIsMaximized] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [testing, setTesting] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
@@ -76,7 +74,7 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
     { name: 'Cyan', value: '#5AC8FA' },
   ];
 
-  const bgClass = isDark ? 'bg-gray-800/92 border-white/10 text-white' : 'bg-white/92 border-white/50 text-gray-800';
+  const bgClass = isDark ? 'bg-gray-800/95 border-white/10 text-white' : 'bg-white/95 border-white/50 text-gray-800';
 
   const inputClass = `w-full px-3 py-2 rounded-lg text-xs outline-none transition-all border ${
     isDark
@@ -99,10 +97,9 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
     <div
       className="fixed animate-window-enter"
       style={{ 
-        left: isMaximized ? '50%' : position.x, 
-        top: isMaximized ? '45%' : position.y, 
-        width: isMaximized ? '560px' : '380px',
-        transform: isMaximized ? 'translate(-50%, -50%)' : undefined,
+        left: position.x, 
+        top: position.y, 
+        width: 380,
         zIndex,
       }}
       onMouseDown={handleMouseDown}
@@ -111,32 +108,17 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
       <div className={`rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border ${bgClass}`}>
         {/* 标题栏 */}
         <div className="window-title-bar flex items-center gap-2 px-4 py-3 cursor-move border-b border-white/5">
-          <div className="flex gap-2">
-            <button
-              onClick={onClose}
-              className="window-btn w-3 h-3 rounded-full bg-[#FF5F57] hover:brightness-90 transition-all flex items-center justify-center group cursor-default"
-            >
-              <X size={8} className="text-black/40 opacity-0 group-hover:opacity-100" />
-            </button>
-            <button
-              onClick={() => setIsMinimized((v) => !v)}
-              className="window-btn w-3 h-3 rounded-full bg-[#FEBC2E] hover:brightness-90 transition-all flex items-center justify-center group cursor-default"
-            >
-              <span className="text-black/40 opacity-0 group-hover:opacity-100 text-[8px] font-bold">−</span>
-            </button>
-            <button
-              onClick={() => setIsMaximized((v) => !v)}
-              className="window-btn w-3 h-3 rounded-full bg-[#28C840] hover:brightness-90 transition-all flex items-center justify-center group cursor-default"
-            >
-              <span className="text-black/40 opacity-0 group-hover:opacity-100 text-[8px] font-bold">+</span>
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="window-btn w-3 h-3 rounded-full bg-[#FF5F57] hover:brightness-90 transition-all flex items-center justify-center group cursor-default"
+          >
+            <X size={8} className="text-black/40 opacity-0 group-hover:opacity-100" />
+          </button>
           <span className="ml-3 text-xs font-medium opacity-50 tracking-wide">SETTINGS</span>
         </div>
 
         {/* 内容 */}
-        {!isMinimized && (
-        <div className={`px-5 py-5 space-y-6 overflow-y-auto ${isMaximized ? 'max-h-[70vh]' : 'max-h-[65vh]'}`}>
+        <div className="px-5 py-5 space-y-6 overflow-y-auto max-h-[65vh]">
           {/* SYSTEM */}
           <div>
             <h3 className="text-[11px] font-bold opacity-40 uppercase tracking-widest mb-3">System</h3>
@@ -430,7 +412,6 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
             </p>
           </div>
         </div>
-        )}
       </div>
     </div>
   );

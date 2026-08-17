@@ -159,7 +159,7 @@ export function FolderWindow({
 
   if (!folder || folder.type !== 'folder') return null;
 
-  const bgClass = isDark ? 'bg-gray-800/92 border-white/10 text-white' : 'bg-white/92 border-white/50 text-gray-800';
+  const bgClass = isDark ? 'bg-gray-800/95 border-white/10 text-white' : 'bg-white/95 border-white/50 text-gray-800';
 
   return (
     <>
