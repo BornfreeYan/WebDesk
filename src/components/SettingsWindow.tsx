@@ -8,6 +8,8 @@ interface SettingsWindowProps {
   onSettingsChange: (settings: DesktopSettings) => void;
   onClose: () => void;
   isDark: boolean;
+  zIndex: number;
+  onFocus: () => void;
   syncConfig: SyncConfig;
   onSyncConfigChange: (config: SyncConfig) => void;
   syncStatus: SyncStatus;
@@ -25,7 +27,7 @@ const WALLPAPER_OPTIONS = [
   { key: 'custom', label: 'Custom' },
 ];
 
-export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, syncConfig, onSyncConfigChange, syncStatus, onTestConnection, onManualSync, widgets, onWidgetsChange, onExportData }: SettingsWindowProps) {
+export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zIndex, onFocus, syncConfig, onSyncConfigChange, syncStatus, onTestConnection, onManualSync, widgets, onWidgetsChange, onExportData }: SettingsWindowProps) {
   const [position, setPosition] = useState({ x: Math.max(20, window.innerWidth / 2 - 200), y: 80 });
   const [isDragging, setIsDragging] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -74,7 +76,7 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
     { name: 'Cyan', value: '#5AC8FA' },
   ];
 
-  const bgClass = isDark ? 'bg-gray-800/85 border-white/10 text-white' : 'bg-white/85 border-white/50 text-gray-800';
+  const bgClass = isDark ? 'bg-gray-800/92 border-white/10 text-white' : 'bg-white/92 border-white/50 text-gray-800';
 
   const inputClass = `w-full px-3 py-2 rounded-lg text-xs outline-none transition-all border ${
     isDark
@@ -95,14 +97,16 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, sy
 
   return (
     <div
-      className="fixed z-50 animate-window-enter"
+      className="fixed animate-window-enter"
       style={{ 
         left: isMaximized ? '50%' : position.x, 
-        top: isMaximized ? '50%' : position.y, 
+        top: isMaximized ? '45%' : position.y, 
         width: isMaximized ? '560px' : '380px',
         transform: isMaximized ? 'translate(-50%, -50%)' : undefined,
+        zIndex,
       }}
       onMouseDown={handleMouseDown}
+      onClick={onFocus}
     >
       <div className={`rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border ${bgClass}`}>
         {/* 标题栏 */}

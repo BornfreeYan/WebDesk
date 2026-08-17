@@ -34,7 +34,25 @@ function App() {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newBookmark, setNewBookmark] = useState({ name: '', url: '' });
   const [openFolders, setOpenFolders] = useState<string[]>([]);
+  const [windowStack, setWindowStack] = useState<string[]>([]);
   const [moveDialog, setMoveDialog] = useState<{ itemId: string; itemName: string } | null>(null);
+
+  // 窗口置顶：点击窗口时把它移到栈尾（最上层）
+  const focusWindow = useCallback((id: string) => {
+    setWindowStack((prev) => [...prev.filter((w) => w !== id), id]);
+  }, []);
+
+  // 打开文件夹窗口（加入 openFolders 与 windowStack）
+  const openFolderWindow = useCallback((id: string) => {
+    setOpenFolders((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    focusWindow(id);
+  }, [focusWindow]);
+
+  // 打开设置窗口
+  const openSettingsWindow = useCallback(() => {
+    setShowSettings(true);
+    focusWindow('settings');
+  }, [focusWindow]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -379,11 +397,7 @@ function App() {
           bookmarks={data.bookmarks}
           isDark={isDark}
           onOpenLink={(url) => window.open(url, '_blank')}
-          onOpenFolder={(id) => {
-            if (!openFolders.includes(id)) {
-              setOpenFolders((prev) => [...prev, id]);
-            }
-          }}
+          onOpenFolder={openFolderWindow}
         />
 
         {/* 桌面小组件 */}
@@ -434,11 +448,7 @@ function App() {
           isDark={isDark}
           onDelete={handleDeleteBookmark}
           onToggleDock={handleToggleDock}
-          onOpenFolder={(id) => {
-            if (!openFolders.includes(id)) {
-              setOpenFolders((prev) => [...prev, id]);
-            }
-          }}
+          onOpenFolder={openFolderWindow}
           onRename={handleRename}
           onOpenMoveDialog={(itemId, itemName) => setMoveDialog({ itemId, itemName })}
           dockItems={data.dockItems}
@@ -452,15 +462,11 @@ function App() {
             showSettings={showSettings}
             isDark={isDark}
             accentColor={data.settings.accentColor}
-            onSettingsClick={() => setShowSettings(true)}
+            onSettingsClick={openSettingsWindow}
             onAddClick={() => setShowAddDialog(true)}
             onImportClick={() => setShowImporter(true)}
             onCreateFolder={handleCreateFolder}
-            onOpenFolder={(id) => {
-              if (!openFolders.includes(id)) {
-                setOpenFolders((prev) => [...prev, id]);
-              }
-            }}
+            onOpenFolder={openFolderWindow}
           />
         )}
 
@@ -469,8 +475,13 @@ function App() {
           <SettingsWindow
             settings={data.settings}
             onSettingsChange={(settings) => setData((prev) => ({ ...prev, settings }))}
-            onClose={() => setShowSettings(false)}
+            onClose={() => {
+              setShowSettings(false);
+              setWindowStack((prev) => prev.filter((id) => id !== 'settings'));
+            }}
             isDark={isDark}
+            zIndex={40 + windowStack.indexOf('settings')}
+            onFocus={() => focusWindow('settings')}
             syncConfig={syncConfig}
             onSyncConfigChange={setSyncConfig}
             syncStatus={sync.status}
@@ -499,12 +510,13 @@ function App() {
             allBookmarks={data.bookmarks}
             isDark={isDark}
             accentColor={data.settings.accentColor}
-            onClose={() => setOpenFolders((prev) => prev.filter((id) => id !== folderId))}
-            onOpenFolder={(id) => {
-              if (!openFolders.includes(id)) {
-                setOpenFolders((prev) => [...prev, id]);
-              }
+            zIndex={40 + windowStack.indexOf(folderId)}
+            onFocus={() => focusWindow(folderId)}
+            onClose={() => {
+              setOpenFolders((prev) => prev.filter((id) => id !== folderId));
+              setWindowStack((prev) => prev.filter((id) => id !== folderId));
             }}
+            onOpenFolder={openFolderWindow}
             onOpenLink={(url) => window.open(url, '_blank')}
             onDelete={handleDeleteBookmark}
             onRename={handleRename}

@@ -8,6 +8,8 @@ interface FolderWindowProps {
   allBookmarks: Bookmark[];
   isDark: boolean;
   accentColor: string;
+  zIndex: number;
+  onFocus: () => void;
   onClose: () => void;
   onOpenFolder: (folderId: string) => void;
   onOpenLink: (url: string) => void;
@@ -34,6 +36,8 @@ export function FolderWindow({
   allBookmarks,
   isDark,
   accentColor,
+  zIndex,
+  onFocus,
   onClose,
   onOpenFolder,
   onOpenLink,
@@ -155,26 +159,23 @@ export function FolderWindow({
 
   if (!folder || folder.type !== 'folder') return null;
 
-  const bgClass = isDark ? 'bg-gray-800/85 border-white/10 text-white' : 'bg-white/85 border-white/50 text-gray-800';
+  const bgClass = isDark ? 'bg-gray-800/92 border-white/10 text-white' : 'bg-white/92 border-white/50 text-gray-800';
 
   return (
     <>
       {/* 窗口主体 */}
       <div
-        className="fixed z-50 animate-window-enter"
-        style={{ left: position.x, top: position.y, width: '480px' }}
+        className="fixed animate-window-enter"
+        style={{ left: position.x, top: position.y, width: '480px', zIndex }}
         onMouseDown={handleMouseDown}
+        onClick={onFocus}
       >
         <div className={`rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border ${bgClass}`}>
           {/* 标题栏 */}
           <div className="window-title-bar flex items-center gap-2 px-4 py-3 cursor-move border-b border-white/5">
-            <div className="flex gap-2">
-              <button onClick={onClose} className="window-btn w-3 h-3 rounded-full bg-[#FF5F57] hover:brightness-90 transition-all flex items-center justify-center group cursor-default">
-                <X size={8} className="text-black/40 opacity-0 group-hover:opacity-100" />
-              </button>
-              <div className="w-3 h-3 rounded-full bg-[#FEBC2E]" />
-              <div className="w-3 h-3 rounded-full bg-[#28C840]" />
-            </div>
+            <button onClick={onClose} className="window-btn w-3 h-3 rounded-full bg-[#FF5F57] hover:brightness-90 transition-all flex items-center justify-center group cursor-default">
+              <X size={8} className="text-black/40 opacity-0 group-hover:opacity-100" />
+            </button>
             <span className="ml-3 text-xs font-medium opacity-50 tracking-wide flex items-center gap-1.5">
               <Folder size={12} />
               {folder.name}
