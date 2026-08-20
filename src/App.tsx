@@ -503,7 +503,7 @@ function App() {
         )}
 
         {/* 文件夹窗口 */}
-        {openFolders.map((folderId) => (
+        {openFolders.map((folderId, idx) => (
           <FolderWindow
             key={folderId}
             folderId={folderId}
@@ -511,6 +511,7 @@ function App() {
             isDark={isDark}
             accentColor={data.settings.accentColor}
             zIndex={40 + windowStack.indexOf(folderId)}
+            stackIndex={idx}
             onFocus={() => focusWindow(folderId)}
             onClose={() => {
               setOpenFolders((prev) => prev.filter((id) => id !== folderId));

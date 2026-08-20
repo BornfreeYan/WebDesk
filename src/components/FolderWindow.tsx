@@ -9,6 +9,7 @@ interface FolderWindowProps {
   isDark: boolean;
   accentColor: string;
   zIndex: number;
+  stackIndex: number;
   onFocus: () => void;
   onClose: () => void;
   onOpenFolder: (folderId: string) => void;
@@ -37,6 +38,7 @@ export function FolderWindow({
   isDark,
   accentColor,
   zIndex,
+  stackIndex,
   onFocus,
   onClose,
   onOpenFolder,
@@ -48,7 +50,11 @@ export function FolderWindow({
   onMoveToFolder,
 }: FolderWindowProps) {
   const folder = useMemo(() => findBookmarkById(allBookmarks, folderId), [allBookmarks, folderId]);
-  const [position, setPosition] = useState({ x: Math.max(40, window.innerWidth / 2 - 200), y: 100 });
+  // 级联错位：新打开的窗口在默认位置基础上向右下偏移，避免与已有窗口完全重叠
+  const [position, setPosition] = useState(() => ({
+    x: Math.max(40, window.innerWidth / 2 - 200) + stackIndex * 24,
+    y: 100 + stackIndex * 24,
+  }));
   const [isDragging, setIsDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
   const lastDragEnd = useRef(0);
