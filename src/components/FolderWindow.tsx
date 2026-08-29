@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import type { Bookmark } from '../types';
 import { X, Folder, Trash2, Plus } from 'lucide-react';
 import { MoveToFolderDialog } from './MoveToFolderDialog';
+import { getFaviconUrl, initialLetter } from '../lib/favicon';
 
 interface FolderWindowProps {
   folderId: string;
@@ -350,15 +351,6 @@ export function FolderWindow({
   );
 }
 
-function getFaviconUrl(url: string): string {
-  try {
-    const domain = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-  } catch {
-    return '';
-  }
-}
-
 interface FolderItemProps {
   item: Bookmark;
   isDark: boolean;
@@ -404,6 +396,7 @@ function FolderItem({
   onContextMenu,
   onDelete,
 }: FolderItemProps) {
+  const [faviconFailed, setFaviconFailed] = useState(false);
   const handleClick = () => {
     if (Date.now() - lastDragEnd.current < 300) return;
     onClick();
@@ -448,21 +441,17 @@ function FolderItem({
       <div className="w-14 h-14 rounded-[16px] flex items-center justify-center transition-all pointer-events-none">
         {item.type === 'folder' ? (
           <Folder size={24} style={{ color: accentColor }} />
-        ) : item.favicon || getFaviconUrl(item.url || '') ? (
+        ) : (item.favicon || getFaviconUrl(item.url || '')) && !faviconFailed ? (
           <img
             src={item.favicon || getFaviconUrl(item.url || '')}
             alt={item.name}
             className="w-8 h-8 rounded-lg object-contain"
             draggable={false}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-              target.parentElement!.innerHTML = `<span class="text-lg font-bold ${isDark ? 'text-white/60' : 'text-gray-400'}">${item.name.charAt(0).toUpperCase()}</span>`;
-            }}
+            onError={() => setFaviconFailed(true)}
           />
         ) : (
           <span className={`text-lg font-bold ${isDark ? 'text-white/60' : 'text-gray-400'}`}>
-            {item.name.charAt(0).toUpperCase()}
+            {initialLetter(item.name)}
           </span>
         )}
       </div>

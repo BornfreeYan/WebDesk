@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import type { Bookmark } from '../types';
 import { X, Upload, Check, FileText, Folder } from 'lucide-react';
+import { normalizeBookmarkUrl } from '../lib/openUrl';
 
 interface BookmarkImporterProps {
   onImport: (bookmarks: Bookmark[]) => void;
@@ -154,7 +155,7 @@ export function BookmarkImporter({ onImport, onClose, isDark }: BookmarkImporter
         >
           <Upload size={36} className="mx-auto mb-3 opacity-40" />
           <p className="text-sm font-medium mb-1">Click to select or drag &amp; drop a browser-exported bookmarks HTML file</p>
-          <p className="text-xs opacity-50">Supports Chrome / Edge / Firefox / Safari bookmark export formats</p>
+          <p className="text-xs opacity-50">Supports Chrome / Edge / Firefox / Safari. Links are imported as a flat list (folder tree is not kept).</p>
           <input
             ref={fileInputRef}
             type="file"
@@ -189,7 +190,6 @@ export function BookmarkImporter({ onImport, onClose, isDark }: BookmarkImporter
           <div className="flex-1 overflow-hidden mb-4">
             <p className="text-sm mb-2 font-medium">
               Found {linkCount} links{folderCount > 0 ? `, ${folderCount} folders` : ''}
-              {folderCount > 0 && ' (folder structure preserved)'}
             </p>
             <div className={`max-h-52 overflow-y-auto rounded-xl p-2 space-y-1 ${isDark ? 'bg-black/20' : 'bg-black/5'}`}>
               {previewLinks.map((item, index) => (
@@ -245,17 +245,11 @@ function parseBookmarksHtml(html: string): Bookmark[] {
   const links = doc.querySelectorAll('a[href]');
 
   for (const a of links) {
-    const url = a.getAttribute('href');
+    const href = a.getAttribute('href');
+    if (!href) continue;
+    const url = normalizeBookmarkUrl(href);
     const name = a.textContent?.trim() || 'Untitled';
-
-    // 过滤无效链接
-    if (!url || url.startsWith('javascript:') || url === '' || url.startsWith('place:') || url.startsWith('about:')) {
-      continue;
-    }
-    // 过滤浏览器内置链接
-    if (url.startsWith('chrome://') || url.startsWith('edge://') || url.startsWith('opera://')) {
-      continue;
-    }
+    if (!url) continue;
 
     bookmarks.push({
       id: `link-${Date.now()}-${index++}`,

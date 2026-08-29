@@ -2,6 +2,8 @@ import { useDraggable, useDroppable } from '@dnd-kit/core';
 import type { Bookmark } from '../types';
 import { X, Pin, Trash2, Folder } from 'lucide-react';
 import { useState, useRef } from 'react';
+import { openBookmarkUrl } from '../lib/openUrl';
+import { getFaviconUrl, initialLetter } from '../lib/favicon';
 
 interface DesktopIconProps {
   bookmark: Bookmark;
@@ -38,6 +40,7 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
   const [contextMenuPos, setContextMenuPos] = useState({ x: 0, y: 0 });
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(bookmark.name);
+  const [faviconFailed, setFaviconFailed] = useState(false);
   const ptrStart = useRef<{ x: number; y: number } | null>(null);
   const isRightClick = useRef(false);
 
@@ -67,7 +70,7 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
           if (bookmark.type === 'folder') {
             onOpenFolder(bookmark.id);
           } else if (bookmark.url) {
-            window.open(bookmark.url, '_blank');
+            openBookmarkUrl(bookmark.url);
           }
         }
       }
@@ -128,21 +131,17 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
         >
           {bookmark.type === 'folder' ? (
             <Folder size={32} className={isDark ? 'text-white/70' : 'text-gray-500'} />
-          ) : faviconUrl ? (
+          ) : faviconUrl && !faviconFailed ? (
             <img
               src={faviconUrl}
               alt={bookmark.name}
               className="w-10 h-10 rounded-xl object-contain"
               draggable={false}
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-                target.parentElement!.innerHTML = `<span class="text-xl font-bold ${isDark ? 'text-white/60' : 'text-gray-400'}">${bookmark.name.charAt(0).toUpperCase()}</span>`;
-              }}
+              onError={() => setFaviconFailed(true)}
             />
           ) : (
             <span className={`text-xl font-bold ${isDark ? 'text-white/60' : 'text-gray-400'}`}>
-              {bookmark.name.charAt(0).toUpperCase()}
+              {initialLetter(bookmark.name)}
             </span>
           )}
         </div>
@@ -248,13 +247,4 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
       )}
     </>
   );
-}
-
-function getFaviconUrl(url: string): string {
-  try {
-    const domain = new URL(url).hostname;
-    return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
-  } catch {
-    return '';
-  }
 }

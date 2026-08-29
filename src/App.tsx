@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { DndContext, type DragEndEvent, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
 import { Desktop } from './components/Desktop';
 import { Dock } from './components/Dock';
@@ -12,6 +12,7 @@ import { MoveToFolderDialog } from './components/MoveToFolderDialog';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useSync } from './hooks/useSync';
 import { defaultData } from './data/defaultBookmarks';
+import { normalizeBookmarkUrl, openBookmarkUrl } from './lib/openUrl';
 import type { DesktopData, DesktopSettings, Bookmark, SyncConfig, WidgetsData } from './types';
 
 const defaultWidgets: WidgetsData = {
@@ -19,8 +20,26 @@ const defaultWidgets: WidgetsData = {
   todo: { x: 24, y: 260, enabled: true, items: [] },
 };
 
+function countTree(items: Bookmark[]): { links: number; folders: number } {
+  let links = 0;
+  let folders = 0;
+  for (const b of items) {
+    if (b.type === 'folder') {
+      folders += 1;
+      if (b.children) {
+        const nested = countTree(b.children);
+        links += nested.links;
+        folders += nested.folders;
+      }
+    } else {
+      links += 1;
+    }
+  }
+  return { links, folders };
+}
+
 function App() {
-  const [data, setData] = useLocalStorage<DesktopData>('webdesk-data-v3', defaultData);
+  const [data, setDataRaw, dataSaveError] = useLocalStorage<DesktopData>('webdesk-data-v3', defaultData);
   const [syncConfig, setSyncConfig] = useLocalStorage<SyncConfig>('webdesk-sync-config', {
     token: '',
     owner: '',
@@ -28,11 +47,25 @@ function App() {
     branch: 'main',
   });
   const [widgets, setWidgets] = useLocalStorage<WidgetsData>('webdesk-widgets-v1', defaultWidgets);
-  const sync = useSync(data, setData, syncConfig);
+
+  const setData = useCallback((updater: React.SetStateAction<DesktopData>) => {
+    setDataRaw((prev) => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      if (next === prev) return prev;
+      return {
+        ...next,
+        updatedAt: Date.now(),
+        settings: { ...next.settings, showDock: true },
+      };
+    });
+  }, [setDataRaw]);
+
+  const sync = useSync(data, setDataRaw, syncConfig);
   const [showSettings, setShowSettings] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newBookmark, setNewBookmark] = useState({ name: '', url: '' });
+  const [addUrlError, setAddUrlError] = useState<string | null>(null);
   const [openFolders, setOpenFolders] = useState<string[]>([]);
   const [windowStack, setWindowStack] = useState<string[]>([]);
   const [moveDialog, setMoveDialog] = useState<{ itemId: string; itemName: string } | null>(null);
@@ -134,11 +167,13 @@ function App() {
 
   const handleAddBookmark = () => {
     if (newBookmark.name.trim() && newBookmark.url.trim()) {
-      let url = newBookmark.url.trim();
-      if (!url.startsWith('http')) {
-        url = `https://${url}`;
+      const url = normalizeBookmarkUrl(newBookmark.url);
+      if (!url) {
+        setAddUrlError('Only http:// and https:// URLs are allowed.');
+        return;
       }
-      
+      setAddUrlError(null);
+
       const bookmark: Bookmark = {
         id: `bookmark-${Date.now()}`,
         name: newBookmark.name.trim(),
@@ -384,19 +419,21 @@ function App() {
   };
 
   const isDark = data.settings.theme === 'dark';
+  const treeCounts = useMemo(() => countTree(data.bookmarks), [data.bookmarks]);
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="relative w-full h-full overflow-hidden wallpaper-transition" style={getBackgroundStyle(data.settings)}>
-        {/* 计数器 — 显示一级文件夹和总书签数 */}
+        {/* 计数器 — 递归统计全部链接与文件夹 */}
         <div className={`fixed top-3 right-3 z-50 px-2 py-1 rounded-lg text-[10px] font-mono opacity-40 pointer-events-none ${isDark ? 'bg-white/10 text-white' : 'bg-black/5 text-gray-800'}`}>
-          Bookmarks: {data.bookmarks.length} | Folders: {data.bookmarks.filter(b => b.type === 'folder').length}        </div>
+          Links: {treeCounts.links} | Folders: {treeCounts.folders}
+        </div>
 
         {/* 全局搜索 */}
         <SearchBar
           bookmarks={data.bookmarks}
           isDark={isDark}
-          onOpenLink={(url) => window.open(url, '_blank')}
+          onOpenLink={(url) => openBookmarkUrl(url)}
           onOpenFolder={openFolderWindow}
         />
 
@@ -419,6 +456,14 @@ function App() {
             onItemsChange={(items) => setWidgets((prev) => ({ ...prev, todo: { ...prev.todo, items } }))}
             onClose={() => setWidgets((prev) => ({ ...prev, todo: { ...prev.todo, enabled: false } }))}
           />
+        )}
+
+        {dataSaveError && (
+          <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[61] animate-window-enter">
+            <div className={`px-4 py-3 rounded-xl shadow-2xl border text-sm max-w-md ${isDark ? 'bg-gray-800/95 border-red-500/30 text-red-300' : 'bg-white/95 border-red-200 text-red-700'}`}>
+              {dataSaveError}
+            </div>
+          </div>
         )}
 
         {/* 云端更新提示 */}
@@ -454,21 +499,19 @@ function App() {
           dockItems={data.dockItems}
         />
 
-        {/* Dock 栏 */}
-        {data.settings.showDock && (
-          <Dock
-            bookmarks={data.bookmarks.filter((b) => data.dockItems.includes(b.id))}
-            openFolders={openFolders}
-            showSettings={showSettings}
-            isDark={isDark}
-            accentColor={data.settings.accentColor}
-            onSettingsClick={openSettingsWindow}
-            onAddClick={() => setShowAddDialog(true)}
-            onImportClick={() => setShowImporter(true)}
-            onCreateFolder={handleCreateFolder}
-            onOpenFolder={openFolderWindow}
-          />
-        )}
+        {/* Dock 栏（始终显示，避免关掉后无法打开设置） */}
+        <Dock
+          bookmarks={data.bookmarks.filter((b) => data.dockItems.includes(b.id))}
+          openFolders={openFolders}
+          showSettings={showSettings}
+          isDark={isDark}
+          accentColor={data.settings.accentColor}
+          onSettingsClick={openSettingsWindow}
+          onAddClick={() => { setAddUrlError(null); setShowAddDialog(true); }}
+          onImportClick={() => setShowImporter(true)}
+          onCreateFolder={handleCreateFolder}
+          onOpenFolder={openFolderWindow}
+        />
 
         {/* 设置窗口 */}
         {showSettings && (
@@ -518,7 +561,7 @@ function App() {
               setWindowStack((prev) => prev.filter((id) => id !== folderId));
             }}
             onOpenFolder={openFolderWindow}
-            onOpenLink={(url) => window.open(url, '_blank')}
+            onOpenLink={(url) => openBookmarkUrl(url)}
             onDelete={handleDeleteBookmark}
             onRename={handleRename}
             onCreateSubfolder={handleCreateSubfolder}
@@ -570,14 +613,18 @@ function App() {
                 type="text"
                 placeholder="URL (e.g. github.com)"
                 value={newBookmark.url}
-                onChange={(e) => setNewBookmark({ ...newBookmark, url: e.target.value })}
+                onChange={(e) => {
+                  setAddUrlError(null);
+                  setNewBookmark({ ...newBookmark, url: e.target.value });
+                }}
                 onKeyDown={(e) => e.key === 'Enter' && handleAddBookmark()}
-                className={`w-full p-3 rounded-xl mb-4 text-sm outline-none transition-all border ${
+                className={`w-full p-3 rounded-xl ${addUrlError ? 'mb-2' : 'mb-4'} text-sm outline-none transition-all border ${
                   isDark
                     ? 'bg-black/30 border-white/10 text-white placeholder:text-white/40 focus:border-white/30'
                     : 'bg-gray-50 border-gray-200 text-gray-800 placeholder:text-gray-400 focus:border-blue-300'
                 }`}
               />
+              {addUrlError && <p className="text-xs text-red-400 mb-4">{addUrlError}</p>}
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setShowAddDialog(false)}

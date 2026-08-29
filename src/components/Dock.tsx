@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { Bookmark } from '../types';
 import { Settings, Plus, Upload, Folder } from 'lucide-react';
+import { openBookmarkUrl } from '../lib/openUrl';
+import { getFaviconUrl, initialLetter } from '../lib/favicon';
 
 interface DockProps {
   bookmarks: Bookmark[];
@@ -94,15 +96,7 @@ export function Dock({ bookmarks, openFolders, showSettings, isDark, accentColor
           return (
             <DockItem
               key={b.id}
-              icon={
-                b.type === 'folder' ? (
-                  <Folder size={22} className={isDark ? 'text-white/70' : 'text-gray-500'} />
-                ) : b.favicon ? (
-                  <img src={b.favicon} alt={b.name} className="w-6 h-6 rounded-md" draggable={false} />
-                ) : (
-                  <span className="text-base font-bold">{b.name.charAt(0).toUpperCase()}</span>
-                )
-              }
+              icon={<DockBookmarkIcon bookmark={b} isDark={isDark} />}
               label={b.name}
               isDark={isDark}
               accentColor={accentColor}
@@ -114,7 +108,7 @@ export function Dock({ bookmarks, openFolders, showSettings, isDark, accentColor
                 if (b.type === 'folder') {
                   onOpenFolder(b.id);
                 } else if (b.url) {
-                  window.open(b.url, '_blank');
+                  openBookmarkUrl(b.url);
                 }
               }}
               onHover={() => setHoveredIndex(idx)}
@@ -125,6 +119,26 @@ export function Dock({ bookmarks, openFolders, showSettings, isDark, accentColor
       </div>
     </div>
   );
+}
+
+function DockBookmarkIcon({ bookmark, isDark }: { bookmark: Bookmark; isDark: boolean }) {
+  const [failed, setFailed] = useState(false);
+  if (bookmark.type === 'folder') {
+    return <Folder size={22} className={isDark ? 'text-white/70' : 'text-gray-500'} />;
+  }
+  const src = bookmark.favicon || getFaviconUrl(bookmark.url || '');
+  if (src && !failed) {
+    return (
+      <img
+        src={src}
+        alt={bookmark.name}
+        className="w-6 h-6 rounded-md"
+        draggable={false}
+        onError={() => setFailed(true)}
+      />
+    );
+  }
+  return <span className="text-base font-bold">{initialLetter(bookmark.name)}</span>;
 }
 
 interface DockItemProps {

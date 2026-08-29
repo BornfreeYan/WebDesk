@@ -4,7 +4,7 @@
 
 ## 工作流
 
-1. **Discovery** ✅ — `references/discovery/` 下四份文档已填充完毕
+1. **Discovery** ✅ — `references/discovery/` 下文档已填充（含收尾优化清单 `05-optimization.md`）
 2. **PRD** ✅ — `references/docs/PRD.md` 已确认
 3. **MVP Vibecoding** ✅ — 已完成并构建通过
 4. **v1（GitHub 同步）** ✅ — 已完成并通过多设备验证
@@ -25,7 +25,7 @@
 ## 已实现功能总览
 
 - 空桌面启动（无预置书签）；单击图标新标签页打开
-- 图标自由拖拽 + 边界限制；macOS 风格 Dock（悬停放大、打开指示点、accent 描边）
+- 图标自由拖拽 + 边界限制；macOS 风格 Dock（悬停放大、打开指示点、accent 描边；始终显示，不可关闭）
 - 手动添加 / 浏览器 HTML 书签导入（平铺解析）
 - 文件夹系统：嵌套、双击开窗、窗口内拖拽归入、右键"移动到文件夹"树形选择、移到桌面、递归重命名/删除、防循环
 - 全局搜索（右上角，模糊匹配所有层级）
@@ -38,7 +38,7 @@
 
 ## 文档索引
 
-- `references/discovery/`：Brainstorm / Research / User Stories / Questions（四份）
+- `references/discovery/`：Brainstorm / Research / User Stories / Questions / Optimization（五份）
 - `references/docs/PRD.md`：产品需求文档（含 v1.1 章节与里程碑）
 - `README.md` / `README.en.md`：用户文档（中文/英文双语）
 - `AGENTS.md`：本文件

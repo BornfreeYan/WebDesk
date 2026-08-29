@@ -36,7 +36,7 @@ export function Desktop({ bookmarks, isDark, onDelete, onToggleDock, onOpenFolde
             <span className="text-4xl">📭</span>
           </div>
           <p className="text-base font-medium mb-1">The desktop is empty</p>
-          <p className="text-sm opacity-70">Click + in the Dock to add a bookmark, or drag &amp; drop an HTML bookmark file to import</p>
+          <p className="text-sm opacity-70">Click + in the Dock to add a bookmark, or use Import in the Dock to upload a bookmarks HTML file</p>
         </div>
       )}
     </div>

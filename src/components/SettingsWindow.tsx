@@ -191,9 +191,9 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
-                            // 限制 5MB
-                            if (file.size > 5 * 1024 * 1024) {
-                              alert('Image size cannot exceed 5MB');
+                            // 限制 2MB
+                            if (file.size > 2 * 1024 * 1024) {
+                              alert('Image size cannot exceed 2MB');
                               return;
                             }
                             const reader = new FileReader();
@@ -207,7 +207,8 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
                       </label>
                       <button
                         onClick={() => onSettingsChange({ ...settings, customWallpaper: undefined })}
-                        className="px-3 py-2 rounded-lg text-xs text-red-400 transition-colors border"                        style={{
+                        className="px-3 py-2 rounded-lg text-xs text-red-400 transition-colors border"
+                        style={{
                           backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
                           borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
                         }}
@@ -231,8 +232,8 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        if (file.size > 5 * 1024 * 1024) {
-                          alert('Image size cannot exceed 5MB');
+                        if (file.size > 2 * 1024 * 1024) {
+                          alert('Image size cannot exceed 2MB');
                           return;
                         }
                         const reader = new FileReader();
@@ -242,7 +243,7 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
                         reader.readAsDataURL(file);
                       }}
                     />
-                    <span className="text-xs opacity-60">Click to upload (max 5MB)</span>
+                    <span className="text-xs opacity-60">Click to upload (max 2MB)</span>
                     <span className="text-[10px] opacity-40 mt-1">JPG, PNG, WebP supported</span>
                   </label>
                 )}
@@ -272,20 +273,6 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
                 ))}
               </div>
             </div>
-          </div>
-
-          {/* DOCK */}
-          <div>
-            <h3 className="text-[11px] font-bold opacity-40 uppercase tracking-widest mb-3">Dock</h3>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={settings.showDock}
-                onChange={(e) => onSettingsChange({ ...settings, showDock: e.target.checked })}
-                className="w-4 h-4 rounded accent-blue-500"
-              />
-              <span className="text-sm">Show dock</span>
-            </label>
           </div>
 
           {/* WIDGETS */}
