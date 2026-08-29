@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getFaviconUrl, initialLetter, isGenericFaviconPlaceholder } from '../lib/favicon';
+import { getFaviconUrl, initialLetter, isGenericFaviconPlaceholder, nameStartsWithEmoji } from '../lib/favicon';
 
 interface FaviconImgProps {
   pageUrl?: string;
@@ -11,10 +11,15 @@ interface FaviconImgProps {
 
 export function FaviconImg({ pageUrl, name, className, letterClassName, fallbackSrc }: FaviconImgProps) {
   const [failed, setFailed] = useState(false);
-  const src = fallbackSrc || getFaviconUrl(pageUrl || '');
+  const preferEmoji = nameStartsWithEmoji(name);
+  const src = preferEmoji ? '' : fallbackSrc || getFaviconUrl(pageUrl || '');
 
-  if (!src || failed) {
-    return <span className={letterClassName}>{initialLetter(name)}</span>;
+  if (!src || failed || preferEmoji) {
+    return (
+      <span className={`${letterClassName} leading-none`} style={preferEmoji ? { fontSize: '1.35em' } : undefined}>
+        {initialLetter(name)}
+      </span>
+    );
   }
 
   return (

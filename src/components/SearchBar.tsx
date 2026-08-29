@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Folder, ExternalLink } from 'lucide-react';
 import type { Bookmark } from '../types';
+import { FaviconImg } from './FaviconImg';
 
 interface SearchBarProps {
   bookmarks: Bookmark[];
@@ -109,10 +110,14 @@ export function SearchBar({ bookmarks, isDark, onOpenLink, onOpenFolder }: Searc
                 >
                   {h.bookmark.type === 'folder' ? (
                     <Folder size={14} className="opacity-70" />
-                  ) : h.bookmark.favicon ? (
-                    <img src={h.bookmark.favicon} alt="" className="w-5 h-5 rounded" draggable={false} />
                   ) : (
-                    <span className="text-xs font-bold opacity-70">{h.bookmark.name.charAt(0).toUpperCase()}</span>
+                    <FaviconImg
+                      pageUrl={h.bookmark.url}
+                      name={h.bookmark.name}
+                      fallbackSrc={h.bookmark.favicon}
+                      className="w-5 h-5 rounded"
+                      letterClassName="text-xs font-bold opacity-70"
+                    />
                   )}
                 </span>
                 <span className="flex-1 min-w-0">
