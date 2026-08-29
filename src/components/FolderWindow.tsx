@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from 'react';
 import type { Bookmark } from '../types';
 import { X, Folder, Trash2, Plus } from 'lucide-react';
 import { MoveToFolderDialog } from './MoveToFolderDialog';
-import { getFaviconUrl, initialLetter } from '../lib/favicon';
+import { FaviconImg } from './FaviconImg';
 
 interface FolderWindowProps {
   folderId: string;
@@ -396,7 +396,6 @@ function FolderItem({
   onContextMenu,
   onDelete,
 }: FolderItemProps) {
-  const [faviconFailed, setFaviconFailed] = useState(false);
   const handleClick = () => {
     if (Date.now() - lastDragEnd.current < 300) return;
     onClick();
@@ -441,18 +440,14 @@ function FolderItem({
       <div className="w-14 h-14 rounded-[16px] flex items-center justify-center transition-all pointer-events-none">
         {item.type === 'folder' ? (
           <Folder size={24} style={{ color: accentColor }} />
-        ) : (item.favicon || getFaviconUrl(item.url || '')) && !faviconFailed ? (
-          <img
-            src={item.favicon || getFaviconUrl(item.url || '')}
-            alt={item.name}
-            className="w-8 h-8 rounded-lg object-contain"
-            draggable={false}
-            onError={() => setFaviconFailed(true)}
-          />
         ) : (
-          <span className={`text-lg font-bold ${isDark ? 'text-white/60' : 'text-gray-400'}`}>
-            {initialLetter(item.name)}
-          </span>
+          <FaviconImg
+            pageUrl={item.url}
+            name={item.name}
+            fallbackSrc={item.favicon}
+            className="w-8 h-8 rounded-lg object-contain"
+            letterClassName={`text-lg font-bold ${isDark ? 'text-white/60' : 'text-gray-400'}`}
+          />
         )}
       </div>
 

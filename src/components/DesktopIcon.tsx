@@ -3,7 +3,7 @@ import type { Bookmark } from '../types';
 import { X, Pin, Trash2, Folder } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { openBookmarkUrl } from '../lib/openUrl';
-import { getFaviconUrl, initialLetter } from '../lib/favicon';
+import { FaviconImg } from './FaviconImg';
 
 interface DesktopIconProps {
   bookmark: Bookmark;
@@ -40,7 +40,6 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
   const [contextMenuPos, setContextMenuPos] = useState({ x: 0, y: 0 });
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState(bookmark.name);
-  const [faviconFailed, setFaviconFailed] = useState(false);
   const ptrStart = useRef<{ x: number; y: number } | null>(null);
   const isRightClick = useRef(false);
 
@@ -49,8 +48,6 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
         transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
       }
     : undefined;
-
-  const faviconUrl = bookmark.type === 'link' ? (bookmark.favicon || getFaviconUrl(bookmark.url || '')) : '';
 
   const mergedListeners = {
     ...listeners,
@@ -131,18 +128,14 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
         >
           {bookmark.type === 'folder' ? (
             <Folder size={32} className={isDark ? 'text-white/70' : 'text-gray-500'} />
-          ) : faviconUrl && !faviconFailed ? (
-            <img
-              src={faviconUrl}
-              alt={bookmark.name}
-              className="w-10 h-10 rounded-xl object-contain"
-              draggable={false}
-              onError={() => setFaviconFailed(true)}
-            />
           ) : (
-            <span className={`text-xl font-bold ${isDark ? 'text-white/60' : 'text-gray-400'}`}>
-              {initialLetter(bookmark.name)}
-            </span>
+            <FaviconImg
+              pageUrl={bookmark.url}
+              name={bookmark.name}
+              fallbackSrc={bookmark.favicon}
+              className="w-10 h-10 rounded-xl object-contain"
+              letterClassName={`text-xl font-bold ${isDark ? 'text-white/60' : 'text-gray-400'}`}
+            />
           )}
         </div>
 

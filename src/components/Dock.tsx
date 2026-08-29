@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Bookmark } from '../types';
 import { Settings, Plus, Upload, Folder } from 'lucide-react';
 import { openBookmarkUrl } from '../lib/openUrl';
-import { getFaviconUrl, initialLetter } from '../lib/favicon';
+import { FaviconImg } from './FaviconImg';
 
 interface DockProps {
   bookmarks: Bookmark[];
@@ -122,23 +122,18 @@ export function Dock({ bookmarks, openFolders, showSettings, isDark, accentColor
 }
 
 function DockBookmarkIcon({ bookmark, isDark }: { bookmark: Bookmark; isDark: boolean }) {
-  const [failed, setFailed] = useState(false);
   if (bookmark.type === 'folder') {
     return <Folder size={22} className={isDark ? 'text-white/70' : 'text-gray-500'} />;
   }
-  const src = bookmark.favicon || getFaviconUrl(bookmark.url || '');
-  if (src && !failed) {
-    return (
-      <img
-        src={src}
-        alt={bookmark.name}
-        className="w-6 h-6 rounded-md"
-        draggable={false}
-        onError={() => setFailed(true)}
-      />
-    );
-  }
-  return <span className="text-base font-bold">{initialLetter(bookmark.name)}</span>;
+  return (
+    <FaviconImg
+      pageUrl={bookmark.url}
+      name={bookmark.name}
+      fallbackSrc={bookmark.favicon}
+      className="w-6 h-6 rounded-md"
+      letterClassName="text-base font-bold"
+    />
+  );
 }
 
 interface DockItemProps {

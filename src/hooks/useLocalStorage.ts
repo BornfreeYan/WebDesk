@@ -5,7 +5,7 @@ function quotaMessage(err: unknown): string {
     err instanceof DOMException &&
     (err.name === 'QuotaExceededError' || err.name === 'NS_ERROR_DOM_QUOTA_REACHED');
   if (isQuota) {
-    return 'Browser storage is full. Use a smaller wallpaper (max 2MB) or free some space.';
+    return 'Browser storage is full. Use a smaller wallpaper (max 5MB) or free some space.';
   }
   return 'Failed to save data locally.';
 }

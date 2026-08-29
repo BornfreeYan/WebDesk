@@ -191,9 +191,9 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
-                            // 限制 2MB
-                            if (file.size > 2 * 1024 * 1024) {
-                              alert('Image size cannot exceed 2MB');
+                            // 限制 5MB
+                            if (file.size > 5 * 1024 * 1024) {
+                              alert('Image size cannot exceed 5MB');
                               return;
                             }
                             const reader = new FileReader();
@@ -232,8 +232,8 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
-                        if (file.size > 2 * 1024 * 1024) {
-                          alert('Image size cannot exceed 2MB');
+                        if (file.size > 5 * 1024 * 1024) {
+                          alert('Image size cannot exceed 5MB');
                           return;
                         }
                         const reader = new FileReader();
@@ -243,7 +243,7 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
                         reader.readAsDataURL(file);
                       }}
                     />
-                    <span className="text-xs opacity-60">Click to upload (max 2MB)</span>
+                    <span className="text-xs opacity-60">Click to upload (max 5MB)</span>
                     <span className="text-[10px] opacity-40 mt-1">JPG, PNG, WebP supported</span>
                   </label>
                 )}

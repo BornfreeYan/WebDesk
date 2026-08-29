@@ -110,7 +110,7 @@
 
 ### 6. 自定义壁纸写入失败要提示（并尽量避免撑爆配额）
 
-**状态**: 已完成（失败提示 + 上限 2MB；未拆独立 key）
+**状态**: 已完成（失败提示 + 上限 5MB；未拆独立 key）
 
 **问题是什么**  
 壁纸上限 5MB，转 Data URL 约 6–7MB，和书签写在同一个 `webdesk-data-v3`。`localStorage` 常见配额约 5–10MB。超限时 `useLocalStorage` 只 `console.error`，界面像保存成功，**刷新就丢**。
