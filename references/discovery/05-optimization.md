@@ -183,6 +183,8 @@
 **建议改法**  
 与 `getFaviconUrl` 同一套逻辑（可抽到 `src/lib/`）。
 
+**后续（已做）**：名称以 emoji 开头时，桌面 / Dock / 文件夹 / 搜索均用该 emoji 作图标；Google 默认 16px 地球标视为无图标。
+
 **涉及文件（预估）**: `src/components/Dock.tsx`，可能抽公共函数。
 
 ---
@@ -244,7 +246,7 @@ PRD 写 macOS 三按钮「关闭/最小化/最大化均可点击」；实现只�
 | Command Palette（⌘K） | PRD v1.1 用右上角搜索代替，标为延后。 |
 | 移动端适配、iframe 内嵌站点 | 产品边界。 |
 | 桌面空白右键菜单 | PRD 延后；第 2 项若选 C 才做。 |
-| 文件夹改回「双击打开」 | PRD 写双击，实现是单击（与书签一致）。属产品选择，不是缺陷；若要改请单独说。 |
+| 文件夹改回「双击打开」 | 文档已统一为「单击打开」（与书签一致）。属产品选择，不是缺陷；若要改回双击请单独说。 |
 | Vite `base: '/WebDesk/'` | 仓库名必须是 `WebDesk` 时 Pages 才对。README 教程应已覆盖；Fork 改名需改 `vite.config`。本次不改除非你点名。 |
 | Google Favicon 隐私 | 每个域名会请求 Google；当前架构可接受，最多 README 补一句。 |
 | GitHub Contents API 约 1MB | 书签极多时同步会失败。一般个人用量够用；第 4 项导入 JSON 时若要做体积校验可再加。 |

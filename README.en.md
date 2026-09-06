@@ -4,11 +4,16 @@
 
 Your desktop on the web — a personal web desktop bookmark manager with a macOS-style desktop, icons, Dock and folders, backed by free cross-device sync through your own GitHub repository.
 
+<p align="center">
+  <img src="docs/screenshots/webdesk-demo.gif" alt="WebDesk demo: click to open folders; drag bookmarks, notes and the clock freely" width="820">
+</p>
+
 ## Features
 
 - 🖥️ **Desktop metaphor** — free-drag icons, folder hierarchy, macOS-style Dock and settings window
 - 🔖 **Bookmark management** — add, import browser HTML bookmarks, rename, delete, context menus
-- 📁 **Folder organization** — nested folders, double-click to open a dedicated window
+- 😀 **Emoji icons** — if a bookmark name starts with an emoji, that emoji is used as the icon
+- 📁 **Folder organization** — nested folders, click to open a dedicated window
 - 🌗 **Personalization** — light/dark mode, system accent colors, built-in wallpapers (custom upload supported)
 - ☁️ **GitHub sync** — bookmarks, layout and settings auto-sync to your GitHub repo, restore across devices
 - 🔍 **Global search** — fuzzy search across all bookmarks and folders
