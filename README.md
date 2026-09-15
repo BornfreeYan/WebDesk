@@ -145,13 +145,6 @@ npm run lint      # Oxlint 检查
 
 Vite · React 19 · TypeScript · Tailwind CSS · @dnd-kit · lucide-react —— 纯静态站点，无需后端。
 
-## Contributors
-
-- [@BornfreeYan](https://github.com/BornfreeYan) — 作者，产品设计与实现
-- **ZCode** — AI 编程助手，v1.2 Inbox 功能的设计讨论与实现
-
-欢迎提交 Issue 与 Pull Request。
-
 ## License
 
 [MIT](LICENSE)

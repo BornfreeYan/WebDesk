@@ -142,13 +142,6 @@ npm run lint      # Oxlint checks
 
 Vite · React 19 · TypeScript · Tailwind CSS · @dnd-kit · lucide-react — pure static site, no backend required.
 
-## Contributors
-
-- [@BornfreeYan](https://github.com/BornfreeYan) — author, product design and implementation
-- **ZCode** — AI coding agent; design discussion and implementation of the v1.2 Inbox feature
-
-Issues and pull requests are welcome.
-
 ## License
 
 [MIT](LICENSE)
