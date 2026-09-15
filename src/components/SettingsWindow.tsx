@@ -297,6 +297,15 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
                 />
                 <span className="text-sm">Todo</span>
               </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={widgets.inbox.enabled}
+                  onChange={(e) => onWidgetsChange({ ...widgets, inbox: { ...widgets.inbox, enabled: e.target.checked } })}
+                  className="w-4 h-4 rounded accent-blue-500"
+                />
+                <span className="text-sm">Inbox</span>
+              </label>
             </div>
           </div>
 

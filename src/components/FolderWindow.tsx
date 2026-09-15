@@ -406,6 +406,7 @@ function FolderItem({
   return (
     <div
       ref={onItemRef}
+      title={item.note}
       className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl cursor-pointer transition-colors relative touch-none ${
         isDragOver
           ? isDark

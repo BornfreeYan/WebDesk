@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Bookmark } from '../types';
-import { Settings, Plus, Upload, Folder } from 'lucide-react';
+import { Settings, Plus, Upload, Folder, Inbox } from 'lucide-react';
 import { openBookmarkUrl } from '../lib/openUrl';
 import { FaviconImg } from './FaviconImg';
 
@@ -13,15 +13,17 @@ interface DockProps {
   onSettingsClick: () => void;
   onAddClick: () => void;
   onImportClick: () => void;
+  onInboxClick: () => void;
   onCreateFolder: () => void;
   onOpenFolder: (id: string) => void;
 }
 
-export function Dock({ bookmarks, openFolders, showSettings, isDark, accentColor, onSettingsClick, onAddClick, onImportClick, onCreateFolder, onOpenFolder }: DockProps) {
+export function Dock({ bookmarks, openFolders, showSettings, isDark, accentColor, onSettingsClick, onAddClick, onImportClick, onInboxClick, onCreateFolder, onOpenFolder }: DockProps) {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   const allItems = [
     { type: 'action' as const, icon: <Plus size={20} strokeWidth={2.5} />, label: 'Add', onClick: onAddClick },
+    { type: 'action' as const, icon: <Inbox size={20} strokeWidth={2.5} />, label: 'Save to Inbox', onClick: onInboxClick },
     { type: 'action' as const, icon: <Folder size={20} strokeWidth={2.5} />, label: 'New Folder', onClick: onCreateFolder },
     { type: 'action' as const, icon: <Upload size={20} strokeWidth={2.5} />, label: 'Import', onClick: onImportClick },
     { type: 'divider' as const },
@@ -161,6 +163,7 @@ function DockItem({ icon, label, isDark, accentColor, scale, lift, isHovered, is
         onClick={onClick}
         onMouseEnter={onHover}
         onMouseLeave={onLeave}
+        aria-label={label}
         className={`w-12 h-12 rounded-[16px] flex items-center justify-center transition-all duration-200 ease-out border ${
           isDark
             ? 'bg-white/5 hover:bg-white/15 text-white/90'

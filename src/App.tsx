@@ -8,17 +8,34 @@ import { FolderWindow } from './components/FolderWindow';
 import { SearchBar } from './components/SearchBar';
 import { ClockWidget } from './components/widgets/ClockWidget';
 import { TodoWidget } from './components/widgets/TodoWidget';
+import { InboxWidget } from './components/widgets/InboxWidget';
+import { AddToInboxDialog } from './components/AddToInboxDialog';
 import { MoveToFolderDialog } from './components/MoveToFolderDialog';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useSync } from './hooks/useSync';
 import { defaultData } from './data/defaultBookmarks';
 import { normalizeBookmarkUrl, openBookmarkUrl } from './lib/openUrl';
+import { appendToFolder, createInboxFolder, createInboxItem, findBookmarkById, getInboxItems } from './lib/inbox';
 import type { DesktopData, DesktopSettings, Bookmark, SyncConfig, WidgetsData } from './types';
 
 const defaultWidgets: WidgetsData = {
   clock: { x: 24, y: 90, enabled: true },
   todo: { x: 24, y: 260, enabled: true, items: [] },
+  // 放在第二列：待办组件高度随条目数变化，纵向排在它下面会重叠
+  inbox: { x: 300, y: 90, enabled: true },
 };
+
+/**
+ * 补齐存量数据里缺失的组件字段。
+ * v1.1 及更早版本的 localStorage 没有 inbox，直接读会拿到 undefined 并让桌面白屏。
+ */
+function normalizeWidgets(raw?: Partial<WidgetsData> | null): WidgetsData {
+  return {
+    clock: { ...defaultWidgets.clock, ...raw?.clock },
+    todo: { ...defaultWidgets.todo, ...raw?.todo, items: raw?.todo?.items ?? [] },
+    inbox: { ...defaultWidgets.inbox, ...raw?.inbox },
+  };
+}
 
 function countTree(items: Bookmark[]): { links: number; folders: number } {
   let links = 0;
@@ -46,7 +63,17 @@ function App() {
     repo: '',
     branch: 'main',
   });
-  const [widgets, setWidgets] = useLocalStorage<WidgetsData>('webdesk-widgets-v1', defaultWidgets);
+  const [storedWidgets, setStoredWidgets] = useLocalStorage<WidgetsData>('webdesk-widgets-v1', defaultWidgets);
+
+  // 读的时候补默认值；写之前也补一次——否则老数据缺 inbox 时，
+  // `{ ...prev.inbox, ...pos }` 会丢掉 enabled，把组件变成永久关闭。
+  const widgets = useMemo(() => normalizeWidgets(storedWidgets), [storedWidgets]);
+  const setWidgets = useCallback((updater: React.SetStateAction<WidgetsData>) => {
+    setStoredWidgets((prev) => {
+      const base = normalizeWidgets(prev);
+      return typeof updater === 'function' ? (updater as (p: WidgetsData) => WidgetsData)(base) : updater;
+    });
+  }, [setStoredWidgets]);
 
   const setData = useCallback((updater: React.SetStateAction<DesktopData>) => {
     setDataRaw((prev) => {
@@ -64,6 +91,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showImporter, setShowImporter] = useState(false);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showInboxDialog, setShowInboxDialog] = useState(false);
   const [newBookmark, setNewBookmark] = useState({ name: '', url: '' });
   const [addUrlError, setAddUrlError] = useState<string | null>(null);
   const [openFolders, setOpenFolders] = useState<string[]>([]);
@@ -189,6 +217,37 @@ function App() {
 
       setNewBookmark({ name: '', url: '' });
       setShowAddDialog(false);
+    }
+  };
+
+  // 入库：追加到 Inbox 文件夹；首次使用时懒创建这个文件夹
+  const handleInboxCapture = (url: string, note: string) => {
+    const item = createInboxItem(url, note);
+    setData((prev) => {
+      const existingId = prev.settings.inboxFolderId;
+      const folder = existingId ? findBookmarkById(prev.bookmarks, existingId) : undefined;
+
+      if (folder && folder.type === 'folder') {
+        return { ...prev, bookmarks: appendToFolder(prev.bookmarks, folder.id, item) };
+      }
+
+      const created = createInboxFolder(prev.bookmarks);
+      return {
+        ...prev,
+        settings: { ...prev.settings, inboxFolderId: created.folder.id },
+        bookmarks: appendToFolder(created.bookmarks, created.folder.id, item),
+      };
+    });
+    setShowInboxDialog(false);
+  };
+
+  // 打开完整 Inbox：本身就是一个普通文件夹窗口，不另写视图；尚未创建时改为打开捕获窗口
+  const handleInboxOpenAll = () => {
+    const id = data.settings.inboxFolderId;
+    if (id && findBookmarkById(data.bookmarks, id)) {
+      openFolderWindow(id);
+    } else {
+      setShowInboxDialog(true);
     }
   };
 
@@ -420,13 +479,17 @@ function App() {
 
   const isDark = data.settings.theme === 'dark';
   const treeCounts = useMemo(() => countTree(data.bookmarks), [data.bookmarks]);
+  const inboxItems = useMemo(
+    () => getInboxItems(data.bookmarks, data.settings.inboxFolderId),
+    [data.bookmarks, data.settings.inboxFolderId]
+  );
 
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="relative w-full h-full overflow-hidden wallpaper-transition" style={getBackgroundStyle(data.settings)}>
         {/* 计数器 — 递归统计全部链接与文件夹 */}
         <div className={`fixed top-3 right-3 z-50 px-2 py-1 rounded-lg text-[10px] font-mono opacity-40 pointer-events-none ${isDark ? 'bg-white/10 text-white' : 'bg-black/5 text-gray-800'}`}>
-          Links: {treeCounts.links} | Folders: {treeCounts.folders}
+          Links: {treeCounts.links} | Folders: {treeCounts.folders} | Inbox: {inboxItems.length}
         </div>
 
         {/* 全局搜索 */}
@@ -455,6 +518,20 @@ function App() {
             onPositionChange={(pos) => setWidgets((prev) => ({ ...prev, todo: { ...prev.todo, ...pos } }))}
             onItemsChange={(items) => setWidgets((prev) => ({ ...prev, todo: { ...prev.todo, items } }))}
             onClose={() => setWidgets((prev) => ({ ...prev, todo: { ...prev.todo, enabled: false } }))}
+          />
+        )}
+        {widgets.inbox.enabled && (
+          <InboxWidget
+            state={widgets.inbox}
+            items={inboxItems}
+            isDark={isDark}
+            accentColor={data.settings.accentColor}
+            onPositionChange={(pos) => setWidgets((prev) => ({ ...prev, inbox: { ...prev.inbox, ...pos } }))}
+            onOpenLink={(url) => openBookmarkUrl(url)}
+            onRemove={handleDeleteBookmark}
+            onAdd={() => setShowInboxDialog(true)}
+            onOpenAll={handleInboxOpenAll}
+            onClose={() => setWidgets((prev) => ({ ...prev, inbox: { ...prev.inbox, enabled: false } }))}
           />
         )}
 
@@ -509,6 +586,7 @@ function App() {
           onSettingsClick={openSettingsWindow}
           onAddClick={() => { setAddUrlError(null); setShowAddDialog(true); }}
           onImportClick={() => setShowImporter(true)}
+          onInboxClick={() => setShowInboxDialog(true)}
           onCreateFolder={handleCreateFolder}
           onOpenFolder={openFolderWindow}
         />
@@ -583,6 +661,16 @@ function App() {
               setMoveDialog(null);
             }}
             onClose={() => setMoveDialog(null)}
+          />
+        )}
+
+        {/* 快速捕获到 Inbox */}
+        {showInboxDialog && (
+          <AddToInboxDialog
+            isDark={isDark}
+            accentColor={data.settings.accentColor}
+            onSubmit={handleInboxCapture}
+            onClose={() => setShowInboxDialog(false)}
           />
         )}
 

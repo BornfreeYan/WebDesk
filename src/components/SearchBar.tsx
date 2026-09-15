@@ -37,7 +37,10 @@ export function SearchBar({ bookmarks, isDark, onOpenLink, onOpenFolder }: Searc
     const q = query.trim().toLowerCase();
     if (!q) return [];
     return allHits.filter(
-      (h) => h.bookmark.name.toLowerCase().includes(q) || h.bookmark.url?.toLowerCase().includes(q)
+      (h) =>
+        h.bookmark.name.toLowerCase().includes(q) ||
+        h.bookmark.url?.toLowerCase().includes(q) ||
+        h.bookmark.note?.toLowerCase().includes(q)
     ).slice(0, 12);
   }, [allHits, query]);
 
@@ -122,8 +125,11 @@ export function SearchBar({ bookmarks, isDark, onOpenLink, onOpenFolder }: Searc
                 </span>
                 <span className="flex-1 min-w-0">
                   <span className="block text-sm truncate">{h.bookmark.name}</span>
-                  {h.path && (
-                    <span className="block text-[10px] opacity-40 truncate">{h.path}</span>
+                  {/* 备注优先于路径：搜到一条待看时，“为什么留着”比所在文件夹更有用 */}
+                  {h.bookmark.note ? (
+                    <span className="block text-[10px] opacity-40 truncate">{h.bookmark.note}</span>
+                  ) : (
+                    h.path && <span className="block text-[10px] opacity-40 truncate">{h.path}</span>
                   )}
                 </span>
                 {h.bookmark.type === 'link' && <ExternalLink size={11} className="opacity-30 shrink-0" />}
