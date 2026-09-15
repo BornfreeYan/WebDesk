@@ -2,3 +2,6 @@ node_modules
 dist
 *.local
 .DS_Store
+
+# 本地开发用 pnpm，部署 CI 仍用 npm + package-lock.json（见 README「开发」）
+pnpm-lock.yaml
