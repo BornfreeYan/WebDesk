@@ -15,7 +15,8 @@
 - 😀 **Emoji 图标**：书签名称以 emoji 开头时，用该 emoji 作为图标（不想用网站 favicon 时很方便）
 - 📁 **文件夹归纳**：创建文件夹与子文件夹，单击打开独立窗口；跨层级移动用右键"移动到文件夹"
 - 🔍 **全局搜索**：右上角搜索框，模糊匹配所有层级的书签与文件夹
-- 🕐 **桌面小组件**：毛玻璃质感时钟与待办（可拖拽、可编辑、本地存储）
+- 📥 **Inbox 待看**：把各个网站「稍后再看」的链接统一粘到一个地方——Ctrl+V + Enter 入库，可顺手写一句备注；桌面组件显示最近 3 条与待看数量
+- 🕐 **桌面小组件**：毛玻璃质感时钟、待办与 Inbox（可拖拽、可编辑、本地存储）
 - 🌗 **个性化**：亮/暗模式、System Accent 主题色、多款内置壁纸（支持自定义上传）
 - ☁️ **GitHub 同步**：书签 + 布局 + 设置自动同步到 GitHub 仓库，跨设备恢复
 - 💾 **JSON 导出**：设置中一键备份书签数据到本地文件
@@ -95,6 +96,7 @@ npm run dev
 - 配置 GitHub 同步后，数据同时备份到仓库根目录的 `webdesk-data.json`
 - 同步范围：书签（含文件夹层级）、图标位置、Dock 配置、主题设置
 - 不同步：自定义壁纸图片（仅本地）、GitHub Token（仅本地浏览器）
+- Inbox 待看条目存在书签树里，因此**跟随同步与导出**，也能被全局搜索；只有 Inbox 组件的位置和开关是本地数据
 - 本地备份：设置 → Data → **Export bookmarks as JSON**，随时导出
 
 ### 同步原理（简要）
@@ -137,9 +139,18 @@ npm run build     # 构建到 dist/
 npm run lint      # Oxlint 检查
 ```
 
+> ℹ️ 本地开发也可以用 pnpm（`pnpm dev` / `pnpm build` / `pnpm lint`）。仓库不提交 `pnpm-lock.yaml`，GitHub Actions 部署仍使用 npm 与 `package-lock.json`。
+
 ## 技术栈
 
 Vite · React 19 · TypeScript · Tailwind CSS · @dnd-kit · lucide-react —— 纯静态站点，无需后端。
+
+## Contributors
+
+- [@BornfreeYan](https://github.com/BornfreeYan) — 作者，产品设计与实现
+- **ZCode** — AI 编程助手，v1.2 Inbox 功能的设计讨论与实现
+
+欢迎提交 Issue 与 Pull Request。
 
 ## License
 

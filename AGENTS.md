@@ -10,7 +10,8 @@
 4. **v1（GitHub 同步）** ✅ — 已完成并通过多设备验证
 5. **上线（Fork 分发）** ✅ — 已部署至 GitHub Pages，Fork 流程经新账号实测验证
 6. **v1.1（小组件与效率）** ✅ — 已完成
-7. **收尾** 🔄 — 双语 README 已就绪；演示视频/GIF 待拍（脚本见 `references/docs/demo-recording.md`）
+7. **v1.2（Inbox 待看收件箱）** ✅ — 已完成：快速捕获窗口、桌面组件、可选备注；条目存于书签树随同步
+8. **收尾** 🔄 — 双语 README 已就绪；演示视频/GIF 待拍（脚本见 `references/docs/demo-recording.md`）
 
 ## 当前状态
 
@@ -29,7 +30,9 @@
 - 手动添加 / 浏览器 HTML 书签导入（平铺解析）
 - 文件夹系统：嵌套、单击开窗、窗口内拖拽归入、右键"移动到文件夹"树形选择、移到桌面、递归重命名/删除、防循环
 - 全局搜索（右上角，模糊匹配所有层级）
-- 桌面小组件：时钟（毛玻璃）、待办（增删勾选编辑、多行显示），均可拖拽、本地存储、设置开关
+- 桌面小组件：时钟（毛玻璃）、待办（增删勾选编辑、多行显示）、Inbox（最近 3 条待看），均可拖拽、本地存储、设置开关
+- Inbox 待看收件箱（v1.2）：Dock「Save to Inbox」与组件 Add 打开捕获窗口，Ctrl+V + 一次 Enter 入库；名称由 URL 推导，可写可选备注；组件带待看数量徽标，All 按钮打开完整文件夹窗口；条目存于书签树内的 Inbox 文件夹（随同步、随导出、可被搜索）
+- 备注与入库时间：`Bookmark.note` / `Bookmark.createdAt` 为可选字段；备注参与全局搜索，文件夹窗口内 hover 显示 tooltip
 - 设置窗口：仅关闭按钮（红点）、可拖拽标题栏、内容滚动；Dock 始终显示
 - 亮暗模式、System Accent 主题色、多款壁纸 + 自定义上传（上限 5MB；存盘失败会提示）
 - 书签图标：Google Favicon；无图标或 Google 默认地球标时显示名称首个字形；**名称以 emoji 开头则用该 emoji 当图标**
@@ -40,8 +43,8 @@
 
 ## 文档索引
 
-- `references/discovery/`：Brainstorm / Research / User Stories / Questions / Optimization（五份）
-- `references/docs/PRD.md`：产品需求文档（含 v1.1 章节与里程碑）
+- `references/discovery/`：Brainstorm / Research / User Stories / Questions / Optimization / Inbox（六份）
+- `references/docs/PRD.md`：产品需求文档（含 v1.1、v1.2 章节与里程碑）
 - `references/docs/demo-recording.md`：演示图/GIF/视频拍摄与分发建议
 - `README.md` / `README.en.md`：用户文档（中文/英文双语）
 - `AGENTS.md`：本文件
@@ -49,7 +52,10 @@
 ## Agent 注意事项
 
 - `references/` 目录为唯一信息源，后续变更需同步更新
-- 用户数据存储：localStorage `webdesk-data-v3`（书签）、`webdesk-widgets-v1`（小组件）、`webdesk-sync-config`（Token）
+- 用户数据存储：localStorage `webdesk-data-v3`（书签 + `settings.inboxFolderId`）、`webdesk-widgets-v1`（小组件的位置与开关）、`webdesk-sync-config`（Token）
+- Inbox 条目是书签树里的普通 `Bookmark`（带可选 `note` / `createdAt`），**不**存在 `webdesk-widgets-v1` 里；组件数据只存位置与开关。设计与取舍见 `references/discovery/06-inbox.md`
+- `webdesk-widgets-v1` 新增组件字段时，必须同步改 `App.tsx` 的 `normalizeWidgets`（读写两侧都要），否则老用户存量数据缺字段会白屏、组件开关会丢失
+- 本地开发用 pnpm（`pnpm dev` / `pnpm build` / `pnpm lint`）；仓库不提交 `pnpm-lock.yaml`，部署 CI 仍走 npm + `package-lock.json`。新增依赖时两端都要能装上
 - 同步数据文件：仓库根目录 `webdesk-data.json`（含 updatedAt 时间戳）
 - 部署 workflow 仅代码变更触发（`src/`、配置等），数据同步不触发部署
 - 代码已迁移至根目录，不再嵌套 `webdesk/` 子目录

@@ -1,6 +1,6 @@
 # WebDesk 产品需求文档（PRD）
 
-> 基于 `references/discovery/` 四份文档的讨论结论汇总。本文档为后续开发（Vibecoding）的唯一依据，开发前确保本文档已确认。
+> 基于 `references/discovery/` 讨论文档的结论汇总。本文档为后续开发（Vibecoding）的唯一依据，开发前确保本文档已确认。
 
 ---
 
@@ -27,6 +27,7 @@
 - ❌ 不做用户登录 / 邮箱注册 / 依赖开发者服务器的中心化方案
 - ❌ 暂不做移动端适配（桌面端 only）
 - ❌ 不做复杂的站内窗口管理（没有多窗口层叠、z-index 系统）
+- ❌ 不做浏览器扩展或后端采集接口（Inbox 的录入只发生在 WebDesk 页面内，保持纯静态无后端）
 
 ---
 
@@ -76,15 +77,34 @@ v1.1 在 v1 基础上增加桌面小组件与效率功能。
 | **JSON 导出** | ✅ | 设置面板提供数据备份导出 | "Export bookmarks as JSON" 下载书签/布局/设置备份（不含壁纸）；设置页 Data 区块 |
 | **Emoji 作图标** | ✅ | 名称以 emoji 开头时用该字形当图标 | 桌面 / Dock / 文件夹窗口 / 搜索一致；完整 grapheme（含国旗、肤色）；emoji 不在开头时仍走 favicon |
 
-> 设计约束：时钟/待办为**本地功能，不参与 GitHub 同步**（沿用"同步范围=书签+布局+设置"原则，小组件数据独立存 localStorage）。
+> 设计约束：时钟/待办为**本地功能，不参与 GitHub 同步**（沿用"同步范围=书签+布局+设置"原则，小组件数据独立存 localStorage）。Inbox 只在这一条上部分例外：**条目内容**存在书签树里的 Inbox 文件夹中（因此随书签同步、随 JSON 导出、可被全局搜索），只有组件的位置与开关留在 localStorage。详见 2.4。
 
-### 2.4 扩展（后续迭代）
+### 2.4 v1.2（Inbox 待看收件箱）
 
-以下功能明确列入"不做"或"延后"，不进入 MVP/v1/v1.1 排期：
+v1.2 解决一个具体摩擦：想「稍后再看」一个链接时，不必在 B 站、YouTube、X 各自的收藏夹里分散存放、再逐个点开，而是统一粘贴到桌面上的一个 Inbox。
+
+| 功能 | 状态 | 描述 | 验收标准 |
+|---|---|---|---|
+| **快速捕获窗口** | ✅ | Dock 新增入口 + 组件上的 Add 按钮，打开捕获窗口 | URL 框自动聚焦；Ctrl+V 粘贴、按一次 Enter 直接入库；名称由 URL 自动推导（去协议与 `www.`、保留路径）；非法协议（`javascript:` 等）被拒并提示 |
+| **可选备注** | ✅ | 入库时可写一句「为什么留着」 | 备注可选，Tab 切换到备注框；存于 `Bookmark.note`；组件列表里备注显示为主行、推导名显示为副行 |
+| **Inbox 组件** | ✅ | 毛玻璃小组件，显示最近 3 条 | 与时钟/待办同款质感；可拖拽；位置与开关持久化（localStorage）；设置中可启用/禁用；数量徽标显示待看总数；空态有引导文案 |
+| **打开全部** | ✅ | 组件上的 All 按钮打开完整 Inbox | 复用现有文件夹窗口（网格、右键重命名/删除/移动、递归删除）打开 `settings.inboxFolderId` 指向的文件夹；未创建时改为打开捕获窗口 |
+| **出库** | ✅ | 列表项 hover 显示 × 即刻删除 | 与桌面图标删除共用同一套逻辑（`handleDeleteBookmark`） |
+| **数据归属** | ✅ | Inbox 是书签树里的普通文件夹，不另建存储 | 条目跟随 GitHub 同步、进入 JSON 导出、可被全局搜索；备注参与搜索匹配；文件夹窗口内 hover 显示备注 tooltip |
+| **旧数据兼容** | ✅ | v1.1 存量的 `webdesk-widgets-v1` 没有 `inbox` 字段 | 读写两侧都做归一化补齐（`normalizeWidgets`）；老用户升级后不白屏、组件开关状态不丢失 |
+| **懒创建** | ✅ | Inbox 文件夹在首次入库时才创建 | 未入库前桌面不出现 Inbox 图标；创建时按现有网格规则落位 |
+
+> 数据约定：`settings.inboxFolderId` 记录 Inbox 文件夹 id（随 settings 同步）；`Bookmark.note` 与 `Bookmark.createdAt` 为可选字段，老数据无需迁移。**同步逻辑无需改动**——书签整树参与同步，settings 走展开合并。
+
+### 2.5 扩展（后续迭代）
+
+以下功能明确列入"不做"或"延后"，不进入 MVP/v1/v1.1/v1.2 排期：
 
 | 功能 | 决策 | 原因 |
 |---|---|---|
 | **番茄钟/计时器** | 延后 | 受众小、与书签/桌面关系弱 |
+| **Inbox 的书签小工具（bookmarklet）/ 桌面全局粘贴捕获** | 延后 | 本轮先做页面内捕获；bookmarklet 还需处理收到的 URL 校验与"云端更新提示"覆盖新条目的顺序问题 |
+| **文件夹窗口内直接添加链接** | 延后 | 本轮由捕获窗口覆盖同一需求，通用化留给后续 |
 | **窗口管理系统**（多窗口层叠、z-index） | 不做 | 已明确不做站内窗口嵌套；设置卡片是唯一浮动窗口 |
 | **移动端适配** | 不做 | 桌面隐喻在移动端天然不合适 |
 | **用户自定义图标图片** | 延后 | 先依赖自动 favicon 获取 |
@@ -144,9 +164,10 @@ v1 阶段可选: GitHub API 同步（配置 Token 后）
 GitHub Repo 中的 webdesk-data.json（云端备份）
 ```
 
-**同步范围**（v1 已确认）：
-- ✅ 同步：书签（含文件夹层级）、图标位置、Dock 配置、基本设置（主题/主题色/内置壁纸选项）
-- ❌ 不同步：自定义壁纸图片（base64 过大，每台设备本地设置）、GitHub Token（单独 localStorage key）
+**同步范围**（v1 已确认，v1.2 补充 Inbox）：
+- ✅ 同步：书签（含文件夹层级，含 `note` / `createdAt`）、图标位置、Dock 配置、基本设置（主题/主题色/内置壁纸选项、`inboxFolderId`）
+- ❌ 不同步：自定义壁纸图片（base64 过大，每台设备本地设置）、GitHub Token（单独 localStorage key）、小组件的位置与开关（`webdesk-widgets-v1`）
+- ℹ️ Inbox 条目属于书签树，**内容参与同步**；只有 Inbox 组件的位置与开关不参与。这是它与时钟/待办的关键区别
 
 **数据格式**（webdesk-data.json / localStorage 同构）：
 ```json
@@ -157,7 +178,8 @@ GitHub Repo 中的 webdesk-data.json（云端备份）
     "theme": "dark",
     "accentColor": "#007AFF",
     "wallpaper": "gradient",
-    "showDock": true
+    "showDock": true,
+    "inboxFolderId": "uuid-3"
   },
   "bookmarks": [
     {
@@ -174,12 +196,31 @@ GitHub Repo 中的 webdesk-data.json（云端备份）
       "type": "folder",
       "position": { "x": 300, "y": 200 },
       "children": []
+    },
+    {
+      "id": "uuid-3",
+      "name": "Inbox",
+      "type": "folder",
+      "position": { "x": 300, "y": 90 },
+      "children": [
+        {
+          "id": "uuid-4",
+          "name": "bilibili.com/video/BV1xx",
+          "type": "link",
+          "url": "https://www.bilibili.com/video/BV1xx",
+          "note": "之后看看这个 GO 语法教程",
+          "createdAt": 1712345678901,
+          "position": { "x": 0, "y": 0 }
+        }
+      ]
     }
   ],
   "dockItems": ["uuid", "uuid-2"]
 }
 ```
 > 说明：`updatedAt` 为毫秒时间戳，用于多设备冲突时判断新旧；`customWallpaper` 不写入云端。
+> `note` / `createdAt` 为 v1.2 新增的可选字段，向后兼容——缺失时不影响渲染，存量数据无需迁移。
+> Inbox 文件夹内的条目 `position` 无意义（文件夹窗口用 CSS 网格排版），统一写 `{ "x": 0, "y": 0 }`。
 
 ### 4.3 部署方案
 
@@ -205,6 +246,7 @@ GitHub Repo 中的 webdesk-data.json（云端备份）
 | **是否预置默认书签** | 已确认：不预置（空桌面） | 空状态体验 |
 | **同步范围** | 已确认：书签+布局+Dock+基本设置，不含壁纸 | 数据格式与同步逻辑 |
 | **冲突策略** | 已确认：时间戳比较 + last-write-wins | 多设备体验 |
+| **Inbox 数据存放位置** | 已确认：书签树内的 Inbox 文件夹（随同步），不用独立 localStorage | 数据持久性、导出与搜索的一致性 |
 
 **建议**: MVP 阶段先采用最简方案——自由拖拽（不吸附）、单层桌面无文件夹分类、前端配置 Token、预置 5-8 个开发者常用书签。后续根据用户反馈迭代。
 
@@ -217,6 +259,7 @@ GitHub Repo 中的 webdesk-data.json（云端备份）
 | **MVP** | 可运行的本地桌面书签页 | 能添加/导入/拖拽/点击图标；有设置面板；数据持久化 | ✅ 已完成 |
 | **v1** | 可跨设备同步的完整产品 | GitHub 同步可用；有 favicon 自动获取；文件夹归纳；壁纸切换 | ✅ 已完成 |
 | **v1.1** | 桌面小组件 + 效率功能 | 时钟/待办小组件；全局搜索；删除按钮收敛 | ✅ 已完成 |
+| **v1.2** | 统一「待看」入口 | Inbox 快速捕获窗口 + 桌面组件 + 可选备注；条目存于书签树随同步 | ✅ 已完成 |
 | **上线** | 可对外发布的开源项目 | 代码推送至 GitHub 仓库；GitHub Pages 部署；README 部署教程完整；接受社区反馈 | ✅ 已完成 |
 
 ---
@@ -250,4 +293,5 @@ GitHub Repo 中的 webdesk-data.json（云端备份）
 - User Stories: `references/discovery/03-user-stories.md`
 - Questions: `references/discovery/04-questions.md`
 - Optimization: `references/discovery/05-optimization.md`
+- Inbox: `references/discovery/06-inbox.md`
 - Demo recording: `references/docs/demo-recording.md`

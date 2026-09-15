@@ -17,7 +17,8 @@ Your desktop on the web — a personal web desktop bookmark manager with a macOS
 - 🌗 **Personalization** — light/dark mode, system accent colors, built-in wallpapers (custom upload supported)
 - ☁️ **GitHub sync** — bookmarks, layout and settings auto-sync to your GitHub repo, restore across devices
 - 🔍 **Global search** — fuzzy search across all bookmarks and folders
-- 🕐 **Desktop widgets** — draggable glassmorphism clock and todo list (local only)
+- 📥 **Inbox** — one place for "read later" links: paste with Ctrl+V and press Enter, optionally add a note; the desktop widget shows the 3 newest plus a pending count
+- 🕐 **Desktop widgets** — draggable glassmorphism clock, todo list and Inbox (local only)
 
 ## Quick Start (local)
 
@@ -94,6 +95,7 @@ Click **Test Connection** — "Connection OK" means it's configured.
 - With GitHub sync configured, data is also backed up to `webdesk-data.json` at the repo root.
 - **Synced**: bookmarks (with folder hierarchy), icon positions, Dock config, theme settings.
 - **Not synced**: custom wallpaper images (local only), GitHub Token (local browser only).
+- Inbox items live inside the bookmark tree, so they **are synced and exported** and are searchable; only the Inbox widget's position and on/off state stay local.
 - **Local backup**: use Settings → Data → **Export bookmarks as JSON** anytime.
 
 ### Sync principles (brief)
@@ -134,9 +136,18 @@ npm run build     # build to dist/
 npm run lint      # Oxlint checks
 ```
 
+> ℹ️ pnpm works locally too (`pnpm dev` / `pnpm build` / `pnpm lint`). `pnpm-lock.yaml` is not committed — the GitHub Actions deploy still uses npm with `package-lock.json`.
+
 ## Tech Stack
 
 Vite · React 19 · TypeScript · Tailwind CSS · @dnd-kit · lucide-react — pure static site, no backend required.
+
+## Contributors
+
+- [@BornfreeYan](https://github.com/BornfreeYan) — author, product design and implementation
+- **ZCode** — AI coding agent; design discussion and implementation of the v1.2 Inbox feature
+
+Issues and pull requests are welcome.
 
 ## License
 
