@@ -32,7 +32,8 @@
 - 全局搜索（右上角，模糊匹配所有层级）
 - 桌面小组件：时钟（毛玻璃）、待办（增删勾选编辑、多行显示）、Inbox（最近 3 条待看），均可拖拽、本地存储、设置开关
 - Inbox 待看收件箱（v1.2）：Dock「Save to Inbox」与组件 Add 打开捕获窗口，Ctrl+V + 一次 Enter 入库；名称由 URL 推导，可写可选备注；组件带待看数量徽标，All 按钮打开完整文件夹窗口；条目存于书签树内的 Inbox 文件夹（随同步、随导出、可被搜索）
-- 备注与入库时间：`Bookmark.note` / `Bookmark.createdAt` 为可选字段；备注参与全局搜索，文件夹窗口内 hover 显示 tooltip
+- 备注与入库时间：`Bookmark.note` / `Bookmark.createdAt` 为可选字段；备注参与全局搜索
+- 显示规则：**备注优先** —— Inbox 组件、搜索下拉、文件夹窗口磁贴（含 Inbox）都用 `note || name` 作主行，名称降为次级小字行，磁贴 hover tooltip 显示 URL。注意：桌面图标仍只显示 `name`，未纳入此规则；Inbox 组件条目单行截断，组件高度只随条目数变化
 - 设置窗口：仅关闭按钮（红点）、可拖拽标题栏、内容滚动；Dock 始终显示
 - 亮暗模式、System Accent 主题色、多款壁纸 + 自定义上传（上限 5MB；存盘失败会提示）
 - 书签图标：Google Favicon；无图标或 Google 默认地球标时显示名称首个字形；**名称以 emoji 开头则用该 emoji 当图标**
@@ -55,6 +56,7 @@
 - 用户数据存储：localStorage `webdesk-data-v3`（书签 + `settings.inboxFolderId`）、`webdesk-widgets-v1`（小组件的位置与开关）、`webdesk-sync-config`（Token）
 - Inbox 条目是书签树里的普通 `Bookmark`（带可选 `note` / `createdAt`），**不**存在 `webdesk-widgets-v1` 里；组件数据只存位置与开关。设计与取舍见 `references/discovery/06-inbox.md`
 - `webdesk-widgets-v1` 新增组件字段时，必须同步改 `App.tsx` 的 `normalizeWidgets`（读写两侧都要），否则老用户存量数据缺字段会白屏、组件开关会丢失
+- 右上角的搜索与计数在 `App.tsx` 里同属一个 `fixed` flex 行；`SearchBar` 自身只有 `relative`，**不要给它加 `fixed` 或 `right-*` 偏移**（历史上写死 `right-[200px]`，计数一超宽就压住搜索框）
 - 本地开发用 pnpm（`pnpm dev` / `pnpm build` / `pnpm lint`）；仓库不提交 `pnpm-lock.yaml`，部署 CI 仍走 npm + `package-lock.json`。新增依赖时两端都要能装上
 - 同步数据文件：仓库根目录 `webdesk-data.json`（含 updatedAt 时间戳）
 - 部署 workflow 仅代码变更触发（`src/`、配置等），数据同步不触发部署

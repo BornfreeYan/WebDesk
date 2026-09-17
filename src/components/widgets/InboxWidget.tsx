@@ -112,9 +112,8 @@ export function InboxWidget({
                     />
                   </span>
                   <span className="flex-1 min-w-0">
-                    <span className="block text-xs break-words leading-snug line-clamp-2">
-                      {item.note || item.name}
-                    </span>
+                    {/* 单行截断：行高固定后组件高度只随条目数变化，不会再撑长压住下方组件 */}
+                    <span className="block text-xs truncate">{item.note || item.name}</span>
                     {item.note && (
                       <span className="block text-[10px] opacity-40 truncate mt-0.5">{item.name}</span>
                     )}

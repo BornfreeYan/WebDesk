@@ -406,7 +406,7 @@ function FolderItem({
   return (
     <div
       ref={onItemRef}
-      title={item.note}
+      title={item.type === 'link' ? item.url : undefined}
       className={`group flex flex-col items-center gap-1.5 p-2 rounded-xl cursor-pointer transition-colors relative touch-none ${
         isDragOver
           ? isDark
@@ -480,9 +480,18 @@ function FolderItem({
           }`}
         />
       ) : (
-        <span className={`text-[11px] font-medium text-center leading-snug max-w-full line-clamp-2 break-words px-1 ${isDark ? 'text-white/80' : 'text-gray-700'}`}>
-          {item.name}
-        </span>
+        <>
+          {/* 备注优先：Inbox 条目的 name 由 URL 推导，写过备注时备注才是"为什么留着"的标识 */}
+          <span className={`text-[11px] font-medium text-center leading-snug max-w-full line-clamp-2 break-words px-1 ${isDark ? 'text-white/80' : 'text-gray-700'}`}>
+            {item.note || item.name}
+          </span>
+          {/* 名称降为次级行：右键 Rename 改的是 name，留在可见处才有反馈 */}
+          {item.note && (
+            <span className={`text-[9px] -mt-1 max-w-full truncate px-1 ${isDark ? 'text-white/45' : 'text-gray-500/80'}`}>
+              {item.name}
+            </span>
+          )}
+        </>
       )}
     </div>
   );

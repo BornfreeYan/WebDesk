@@ -74,8 +74,9 @@ export function SearchBar({ bookmarks, isDark, onOpenLink, onOpenFolder }: Searc
     ? 'bg-black/30 border-white/10 text-white placeholder:text-white/40 focus:border-white/30'
     : 'bg-white/60 border-white/70 text-gray-800 placeholder:text-gray-400 focus:border-gray-300';
 
+  // 只负责自身布局：右上角的定位交给 App 里那一行，否则宽度变化会盖住统计
   return (
-    <div ref={boxRef} className="fixed top-3 right-[200px] z-50">
+    <div ref={boxRef} className="relative">
       <div className="relative">
         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none" />
         <input

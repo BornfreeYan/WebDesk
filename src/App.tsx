@@ -487,18 +487,21 @@ function App() {
   return (
     <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
       <div className="relative w-full h-full overflow-hidden wallpaper-transition" style={getBackgroundStyle(data.settings)}>
-        {/* 计数器 — 递归统计全部链接与文件夹 */}
-        <div className={`fixed top-3 right-3 z-50 px-2 py-1 rounded-lg text-[10px] font-mono opacity-40 pointer-events-none ${isDark ? 'bg-white/10 text-white' : 'bg-black/5 text-gray-800'}`}>
-          Links: {treeCounts.links} | Folders: {treeCounts.folders} | Inbox: {inboxItems.length}
-        </div>
+        {/* 右上角：搜索与统计排在同一行，靠 flex 布局分隔。
+            两者以前各自 fixed（搜索写死 right-[200px]），统计一超宽就压住搜索框。 */}
+        <div className="fixed top-3 right-3 z-50 flex items-center gap-2">
+          <SearchBar
+            bookmarks={data.bookmarks}
+            isDark={isDark}
+            onOpenLink={(url) => openBookmarkUrl(url)}
+            onOpenFolder={openFolderWindow}
+          />
 
-        {/* 全局搜索 */}
-        <SearchBar
-          bookmarks={data.bookmarks}
-          isDark={isDark}
-          onOpenLink={(url) => openBookmarkUrl(url)}
-          onOpenFolder={openFolderWindow}
-        />
+          {/* 计数器 — 递归统计全部链接与文件夹；窄屏隐藏，避免整行溢出视口左侧 */}
+          <div className={`hidden sm:block px-2 py-1 rounded-lg text-[10px] font-mono opacity-40 whitespace-nowrap pointer-events-none ${isDark ? 'bg-white/10 text-white' : 'bg-black/5 text-gray-800'}`}>
+            Links: {treeCounts.links} | Folders: {treeCounts.folders} | Inbox: {inboxItems.length}
+          </div>
+        </div>
 
         {/* 桌面小组件 */}
         {widgets.clock.enabled && (
