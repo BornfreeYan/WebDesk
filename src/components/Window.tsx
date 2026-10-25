@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import { glassBlur, titleBarBorder, windowSurface } from '../lib/surfaces';
+import { glassBlur, titleBarBorder, windowBodyTint, windowSurface } from '../lib/surfaces';
 
 interface WindowProps {
   title: React.ReactNode;
@@ -88,7 +88,7 @@ export function Window({
           </div>
         </div>
 
-        {children}
+        <div className={`${windowBodyTint(isDark)}`}>{children}</div>
       </div>
     </div>
   );
