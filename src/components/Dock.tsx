@@ -65,7 +65,7 @@ export function Dock({ bookmarks, openFolders, showSettings, isDark, accentColor
             return (
               <div
                 key={`divider-${idx}`}
-                className={`w-px h-8 mx-1 self-center ${isDark ? 'bg-white/15' : 'bg-black/8'}`}
+                className={`w-px h-8 mx-1 self-center ${isDark ? 'bg-white/15' : 'bg-black/10'}`}
               />
             );
           }

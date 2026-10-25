@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DesktopData, SyncConfig, SyncStatus } from '../types';
 import { fetchRemoteFile, pushRemoteFile, testConnection as testRemoteConnection, type TestResult } from '../lib/githubSync';
+import { sanitizeDesktopData } from '../lib/sanitize';
 
+/**
+ * 云端数据 → 本地可用的整份数据。
+ * 云端可能被手改过或来自旧版本，过一遍 sanitize，坏节点丢掉而不是让桌面白屏。
+ */
 function mergeRemote(parsed: Partial<DesktopData>, local: DesktopData): DesktopData {
-  let wallpaper = parsed.settings?.wallpaper ?? local.settings.wallpaper;
+  const clean = sanitizeDesktopData(parsed);
+  if (!clean) return local;
+  let wallpaper = clean.settings.wallpaper;
   if (wallpaper === 'custom' && !local.settings.customWallpaper) {
     wallpaper = local.settings.wallpaper === 'custom' ? 'default' : local.settings.wallpaper;
   }
   return {
-    version: parsed.version ?? local.version,
-    updatedAt: parsed.updatedAt ?? Date.now(),
-    settings: { ...local.settings, ...parsed.settings, wallpaper, showDock: true },
-    bookmarks: parsed.bookmarks ?? [],
-    dockItems: parsed.dockItems ?? [],
+    ...clean,
+    settings: { ...local.settings, ...clean.settings, wallpaper, showDock: true },
   };
 }
 
@@ -40,18 +44,7 @@ export function useSync(
 
   const isConfigured = (cfg: SyncConfig) => !!(cfg.token && cfg.owner && cfg.repo);
 
-  const normalizeContent = (d: DesktopData) =>
-    JSON.stringify({
-      bookmarks: d.bookmarks,
-      dockItems: d.dockItems,
-      settings: {
-        theme: d.settings.theme,
-        accentColor: d.settings.accentColor,
-        wallpaper: d.settings.wallpaper,
-        showDock: true,
-      },
-    });
-
+  /** 参与同步的内容指纹：只包含书签、Dock 与基本设置（自定义壁纸不同步）。 */
   const contentKey = (d: DesktopData) =>
     JSON.stringify({
       bookmarks: d.bookmarks,
@@ -64,9 +57,19 @@ export function useSync(
       },
     });
 
-  const doPush = useCallback(async () => {
+  /**
+   * 推送本地数据。
+   *
+   * 返回值表示「这份数据现在是否已经安全地反映在云端」：
+   * - true：推送成功，或云端内容本来就与本地一致（无需推）
+   * - false：确定没有推上去（网络失败、权限不足、远端更新被跳过等）
+   *
+   * 调用方据此决定要不要记 `lastPushedKey`——以前是先记账再推，
+   * 推送失败后同样的数据再也不会被防抖触发，只能靠手动同步兜底。
+   */
+  const doPush = useCallback(async (): Promise<boolean> => {
     const cfg = configRef.current;
-    if (!isConfigured(cfg)) return;
+    if (!isConfigured(cfg)) return false;
     setStatus({ type: 'syncing' });
     try {
       let sha: string | undefined;
@@ -85,9 +88,9 @@ export function useSync(
       }
       if (remote) {
         try {
-          if (normalizeContent(dataRef.current) === normalizeContent(JSON.parse(remoteContent) as DesktopData)) {
+          if (contentKey(dataRef.current) === contentKey(JSON.parse(remoteContent) as DesktopData)) {
             setStatus({ type: 'success', message: 'Cloud is up to date, skipped push' });
-            return;
+            return true; // 云端已是这份内容，算式"已同步"
           }
         } catch {
           // 远端 JSON 损坏则继续尝试覆盖写入
@@ -95,7 +98,7 @@ export function useSync(
       }
       if (remote && remoteTime > (dataRef.current.updatedAt ?? 0)) {
         setStatus({ type: 'success', message: 'Cloud is up to date, skipped push' });
-        return;
+        return false; // 云端更新，本机这份没推上去
       }
       const stamp = dataRef.current.updatedAt ?? Date.now();
       const payload: DesktopData = {
@@ -125,10 +128,10 @@ export function useSync(
               if (latestParsed?.bookmarks && latestParsed.settings && latestParsed.dockItems) {
                 setPendingRemote(mergeRemote(latestParsed, dataRef.current));
                 setStatus({ type: 'success', message: 'Cloud update found' });
-                return;
+                return false;
               }
               setStatus({ type: 'error', message: 'Cloud changed; reload and try again' });
-              return;
+              return false;
             }
             await pushRemoteFile(cfg, payloadStr, latest.sha);
           }
@@ -140,8 +143,10 @@ export function useSync(
         setData((prev) => ({ ...prev, updatedAt: stamp }));
       }
       setStatus({ type: 'success', message: `Synced at ${new Date(stamp).toLocaleTimeString()}` });
+      return true;
     } catch (e) {
       setStatus({ type: 'error', message: (e as Error).message });
+      return false;
     }
   }, [setData]);
 
@@ -168,7 +173,7 @@ export function useSync(
       if (remoteTime > localTime) {
         if (parsed.bookmarks && parsed.settings && parsed.dockItems) {
           const remoteFull = parsed as DesktopData;
-          if (normalizeContent(remoteFull) === normalizeContent(dataRef.current)) {
+          if (contentKey(remoteFull) === contentKey(dataRef.current)) {
             setData((prev) => ({ ...prev, updatedAt: remoteTime }));
             setStatus({ type: 'idle' });
             return false;
@@ -205,22 +210,26 @@ export function useSync(
   useEffect(() => {
     if (!wasConfigured.current) return;
     if (!isConfigured(configRef.current)) return;
-    const t = setTimeout(() => {
-      const key = contentKey(data);
-      if (key === lastPushedKey.current) return;
-      lastPushedKey.current = key;
-      doPush();
+    const pendingKey = contentKey(data);
+    if (pendingKey === lastPushedKey.current) return;
+    const t = setTimeout(async () => {
+      // 只有真的落到云端才记账。以前先记后推，一旦这次失败（断网 / 403 / 远端更新），
+      // 同样的数据再也不会被防抖触发，只能等手动同步。
+      const ok = await doPush();
+      if (ok) lastPushedKey.current = pendingKey;
     }, 5000);
     return () => clearTimeout(t);
   }, [data, doPush]);
 
   useEffect(() => {
-    const flush = () => {
+    const flush = async () => {
       if (!wasConfigured.current || !isConfigured(configRef.current)) return;
-      void doPush();
+      const key = contentKey(dataRef.current);
+      if (key === lastPushedKey.current) return;
+      if (await doPush()) lastPushedKey.current = key;
     };
     const onVis = () => {
-      if (document.visibilityState === 'hidden') flush();
+      if (document.visibilityState === 'hidden') void flush();
     };
     window.addEventListener('pagehide', flush);
     document.addEventListener('visibilitychange', onVis);

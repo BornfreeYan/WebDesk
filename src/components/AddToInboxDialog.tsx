@@ -3,6 +3,7 @@ import { ClipboardPaste, Inbox } from 'lucide-react';
 import { normalizeBookmarkUrl } from '../lib/openUrl';
 import { deriveNameFromUrl } from '../lib/inbox';
 import { FaviconImg } from './FaviconImg';
+import { dialogSurface, glassBlur } from '../lib/surfaces';
 
 interface AddToInboxDialogProps {
   isDark: boolean;
@@ -61,8 +62,8 @@ export function AddToInboxDialog({ isDark, accentColor, onSubmit, onClose }: Add
 
   const inputClass = `w-full p-3 rounded-xl text-sm outline-none transition-all border ${
     isDark
-      ? 'bg-black/30 border-white/10 text-white placeholder:text-white/40 focus:border-white/30'
-      : 'bg-gray-50 border-gray-200 text-gray-800 placeholder:text-gray-400 focus:border-blue-300'
+      ? 'bg-black/25 border-white/15 text-white placeholder:text-white/40 focus:border-white/30'
+      : 'bg-white/70 border-black/10 text-gray-800 placeholder:text-gray-400 focus:border-gray-400'
   }`;
 
   return (
@@ -71,9 +72,7 @@ export function AddToInboxDialog({ isDark, accentColor, onSubmit, onClose }: Add
       onClick={onClose}
     >
       <div
-        className={`rounded-2xl p-6 w-96 shadow-2xl ${
-          isDark ? 'bg-gray-800/90 text-white border border-white/10' : 'bg-white/90 text-gray-800 border border-white/50'
-        } backdrop-blur-xl`}
+        className={`rounded-2xl p-6 w-96 shadow-2xl ${glassBlur} border ${dialogSurface(isDark)}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 mb-1">

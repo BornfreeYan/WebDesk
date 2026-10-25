@@ -1,9 +1,11 @@
 import { useDraggable, useDroppable } from '@dnd-kit/core';
 import type { Bookmark } from '../types';
-import { X, Pin, Trash2, Folder } from 'lucide-react';
+import { X, Pin, Trash2, Folder, Pencil, FolderInput } from 'lucide-react';
 import { useState, useRef } from 'react';
 import { openBookmarkUrl } from '../lib/openUrl';
 import { FaviconImg } from './FaviconImg';
+import { FloatingMenu } from './FloatingMenu';
+import { menuItemHover } from '../lib/surfaces';
 
 interface DesktopIconProps {
   bookmark: Bookmark;
@@ -178,12 +180,7 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
 
       {/* 右键菜单 */}
       {showContextMenu && (
-        <div
-          className="fixed z-50 rounded-xl shadow-2xl overflow-hidden py-1 min-w-[160px]"
-          style={{ left: contextMenuPos.x, top: contextMenuPos.y }}
-          onClick={() => setShowContextMenu(false)}
-        >
-          <div className={`${isDark ? 'bg-gray-800/95 border border-white/10 text-white' : 'bg-white/95 border border-gray-200 text-gray-800'} backdrop-blur-xl`}>
+        <FloatingMenu x={contextMenuPos.x} y={contextMenuPos.y} isDark={isDark} zIndex={50}>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -191,9 +188,9 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
                 setRenameValue(bookmark.name);
                 setShowContextMenu(false);
               }}
-              className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
+              className={`w-full px-3 py-2 text-sm flex items-center gap-2 transition-colors text-left ${menuItemHover(isDark)}`}
             >
-              <span className="w-3.5 h-3.5 text-xs flex items-center justify-center">✏️</span>
+              <Pencil size={14} className="opacity-70" />
               Rename
             </button>
             <button
@@ -202,9 +199,9 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
                 onToggleDock(bookmark.id);
                 setShowContextMenu(false);
               }}
-              className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
+              className={`w-full px-3 py-2 text-sm flex items-center gap-2 transition-colors text-left ${menuItemHover(isDark)}`}
             >
-              <Pin size={14} className={isInDock ? 'text-blue-400' : ''} />
+              <Pin size={14} className={isInDock ? 'text-blue-400' : 'opacity-70'} />
               {isInDock ? 'Unpin from Dock' : 'Pin to Dock'}
             </button>
             <button
@@ -213,25 +210,26 @@ export function DesktopIcon({ bookmark, isDark, onDelete, onToggleDock, onOpenFo
                 onOpenMoveDialog(bookmark.id, bookmark.name);
                 setShowContextMenu(false);
               }}
-              className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
+              className={`w-full px-3 py-2 text-sm flex items-center gap-2 transition-colors text-left ${menuItemHover(isDark)}`}
             >
-              <Folder size={14} className="opacity-70" />
+              <FolderInput size={14} className="opacity-70" />
               Move to Folder…
             </button>
-            <div className={`h-px mx-2 my-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
+            <div className={`h-px mx-2 my-1 ${isDark ? 'bg-white/10' : 'bg-black/10'}`} />
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 onDelete(bookmark.id);
                 setShowContextMenu(false);
               }}
-              className={`w-full px-3 py-2 text-sm flex items-center gap-2 text-red-400 hover:bg-red-50 transition-colors text-left ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`}
+              className={`w-full px-3 py-2 text-sm flex items-center gap-2 text-red-400 transition-colors text-left ${
+                isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'
+              }`}
             >
               <Trash2 size={14} />
               Delete
             </button>
-          </div>
-        </div>
+        </FloatingMenu>
       )}
 
       {/* 点击其他区域关闭右键菜单 */}

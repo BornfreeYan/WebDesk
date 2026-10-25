@@ -1,5 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
-import { DndContext, type DragEndEvent, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
+import { useState, useCallback, useMemo } from 'react';import { DndContext, type DragEndEvent, useSensor, useSensors, PointerSensor } from '@dnd-kit/core';
 import { Desktop } from './components/Desktop';
 import { Dock } from './components/Dock';
 import { SettingsWindow } from './components/SettingsWindow';
@@ -15,7 +14,11 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { useSync } from './hooks/useSync';
 import { defaultData } from './data/defaultBookmarks';
 import { normalizeBookmarkUrl, openBookmarkUrl } from './lib/openUrl';
+import { sanitizeDesktopData } from './lib/sanitize';
 import { appendToFolder, createInboxFolder, createInboxItem, findBookmarkById, getInboxItems } from './lib/inbox';
+import { captureDelete, restoreDeleted, type DeletedNode } from './lib/deleteUndo';
+import { UndoToast } from './components/UndoToast';
+import { dialogSurface, glassBlur, menuSurface } from './lib/surfaces';
 import type { DesktopData, DesktopSettings, Bookmark, SyncConfig, WidgetsData } from './types';
 
 const defaultWidgets: WidgetsData = {
@@ -55,8 +58,16 @@ function countTree(items: Bookmark[]): { links: number; folders: number } {
   return { links, folders };
 }
 
+/**
+ * 存量数据可能缺字段或被手改过；在进入渲染管线前统一补齐，坏节点丢弃而不是白屏。
+ * 定义在组件外保持引用稳定——否则每次渲染都会让 useLocalStorage 的 storage 监听重绑。
+ */
+const normalizeDesktopData = (raw: unknown): DesktopData => sanitizeDesktopData(raw) ?? defaultData;
+
 function App() {
-  const [data, setDataRaw, dataSaveError] = useLocalStorage<DesktopData>('webdesk-data-v3', defaultData);
+  const [data, setDataRaw, dataSaveError] = useLocalStorage<DesktopData>('webdesk-data-v3', defaultData, {
+    normalize: normalizeDesktopData,
+  });
   const [syncConfig, setSyncConfig] = useLocalStorage<SyncConfig>('webdesk-sync-config', {
     token: '',
     owner: '',
@@ -97,6 +108,8 @@ function App() {
   const [openFolders, setOpenFolders] = useState<string[]>([]);
   const [windowStack, setWindowStack] = useState<string[]>([]);
   const [moveDialog, setMoveDialog] = useState<{ itemId: string; itemName: string } | null>(null);
+  // 最近一次删除的现场；有值时才显示撤销条
+  const [lastDeleted, setLastDeleted] = useState<DeletedNode | null>(null);
 
   // 窗口置顶：点击窗口时把它移到栈尾（最上层）
   const focusWindow = useCallback((id: string) => {
@@ -252,6 +265,10 @@ function App() {
   };
 
   const handleDeleteBookmark = (id: string) => {
+    // 删除是递归且不可逆的，删完在桌面上给 6 秒撤销窗口
+    const snapshot = captureDelete(data.bookmarks, data.dockItems, id);
+    if (snapshot) setLastDeleted(snapshot);
+
     setData((prev) => {
       function removeFromTree(items: Bookmark[]): Bookmark[] {
         const result: Bookmark[] = [];
@@ -272,6 +289,16 @@ function App() {
       };
     });
     setOpenFolders((prev) => prev.filter((folderId) => folderId !== id));
+  };
+
+  const handleUndoDelete = () => {
+    const snapshot = lastDeleted;
+    if (!snapshot) return;
+    setLastDeleted(null);
+    setData((prev) => {
+      const next = restoreDeleted(prev.bookmarks, prev.dockItems, snapshot);
+      return { ...prev, ...next };
+    });
   };
 
   const handleRename = (id: string, newName: string) => {
@@ -540,7 +567,7 @@ function App() {
 
         {dataSaveError && (
           <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[61] animate-window-enter">
-            <div className={`px-4 py-3 rounded-xl shadow-2xl border text-sm max-w-md ${isDark ? 'bg-gray-800/95 border-red-500/30 text-red-300' : 'bg-white/95 border-red-200 text-red-700'}`}>
+            <div className={`px-4 py-3 rounded-xl shadow-2xl border text-sm max-w-md ${glassBlur} ${isDark ? 'bg-[#2a2a2e]/85 border-red-500/30 text-red-300' : 'bg-white/85 border-red-200 text-red-700'}`}>
               {dataSaveError}
             </div>
           </div>
@@ -549,7 +576,7 @@ function App() {
         {/* 云端更新提示 */}
         {sync.pendingRemote && (
           <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[60] animate-window-enter">
-            <div className={`px-4 py-3 rounded-xl shadow-2xl border flex items-center gap-3 ${isDark ? 'bg-gray-800/95 border-white/10 text-white' : 'bg-white/95 border-white/50 text-gray-800'}`}>
+            <div className={`px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 ${glassBlur} ${menuSurface(isDark)}`}>
               <span className="text-sm">Cloud data updated. Load it?</span>
               <button
                 onClick={sync.applyPendingRemote}
@@ -677,13 +704,21 @@ function App() {
           />
         )}
 
+        {/* 删除撤销条 */}
+        {lastDeleted && (
+          <UndoToast
+            message={deleteMessage(lastDeleted.node)}
+            isDark={isDark}
+            onUndo={handleUndoDelete}
+            onDismiss={() => setLastDeleted(null)}
+          />
+        )}
+
         {/* 添加书签弹窗 */}
         {showAddDialog && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={() => setShowAddDialog(false)}>
             <div
-              className={`rounded-2xl p-6 w-96 shadow-2xl ${
-                isDark ? 'bg-gray-800/90 text-white border border-white/10' : 'bg-white/90 text-gray-800 border border-white/50'
-              } backdrop-blur-xl`}
+              className={`rounded-2xl p-6 w-96 shadow-2xl ${glassBlur} ${dialogSurface(isDark)}`}
               onClick={(e) => e.stopPropagation()}
             >
               <h2 className="text-lg font-semibold mb-4">Add Bookmark</h2>
@@ -740,8 +775,17 @@ function App() {
   );
 }
 
-function getBackgroundStyle(settings: DesktopSettings): React.CSSProperties {
-  const { theme, wallpaper, customWallpaper } = settings;
+function deleteMessage(node: Bookmark): string {
+  const count = countTree(node.type === 'folder' ? (node.children ?? []) : []);
+  if (node.type === 'folder') {
+    return count.links + count.folders > 0
+      ? `Deleted “${node.name}” and ${count.links + count.folders} item${count.links + count.folders > 1 ? 's' : ''} inside`
+      : `Deleted folder “${node.name}”`;
+  }
+  return `Deleted “${node.name}”`;
+}
+
+function getBackgroundStyle(settings: DesktopSettings): React.CSSProperties {  const { theme, wallpaper, customWallpaper } = settings;
   const isDark = theme === 'dark';
 
   // 自定义图片壁纸

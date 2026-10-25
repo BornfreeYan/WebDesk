@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Folder, ExternalLink } from 'lucide-react';
 import type { Bookmark } from '../types';
 import { FaviconImg } from './FaviconImg';
+import { glassBlur, menuItemHover, menuSurface } from '../lib/surfaces';
 
 interface SearchBarProps {
   bookmarks: Bookmark[];
@@ -71,8 +72,8 @@ export function SearchBar({ bookmarks, isDark, onOpenLink, onOpenFolder }: Searc
   };
 
   const inputClass = isDark
-    ? 'bg-black/30 border-white/10 text-white placeholder:text-white/40 focus:border-white/30'
-    : 'bg-white/60 border-white/70 text-gray-800 placeholder:text-gray-400 focus:border-gray-300';
+    ? 'bg-black/25 border-white/15 text-white placeholder:text-white/40 focus:border-white/30'
+    : 'bg-white/60 border-black/10 text-gray-800 placeholder:text-gray-400 focus:border-black/20';
 
   // 只负责自身布局：右上角的定位交给 App 里那一行，否则宽度变化会盖住统计
   return (
@@ -91,9 +92,7 @@ export function SearchBar({ bookmarks, isDark, onOpenLink, onOpenFolder }: Searc
 
       {focused && query.trim() && (
         <div
-          className={`absolute top-10 right-0 w-80 rounded-2xl shadow-2xl border backdrop-blur-2xl overflow-hidden ${
-            isDark ? 'bg-gray-800/90 border-white/10 text-white' : 'bg-white/95 border-white/50 text-gray-800'
-          }`}
+          className={`absolute top-10 right-0 w-80 rounded-2xl shadow-2xl overflow-hidden ${glassBlur} ${menuSurface(isDark)}`}
         >
           {results.length === 0 ? (
             <p className="px-4 py-3 text-xs opacity-50">No matching bookmarks</p>
@@ -102,9 +101,7 @@ export function SearchBar({ bookmarks, isDark, onOpenLink, onOpenFolder }: Searc
               <button
                 key={h.bookmark.id}
                 onClick={() => handlePick(h)}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left transition-colors ${
-                  isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'
-                }`}
+                className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-left transition-colors ${menuItemHover(isDark)}`}
               >
                 <span
                   className="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center overflow-hidden"

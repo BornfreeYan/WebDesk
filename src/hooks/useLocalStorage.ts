@@ -10,12 +10,22 @@ function quotaMessage(err: unknown): string {
   return 'Failed to save data locally.';
 }
 
-export function useLocalStorage<T>(key: string, initialValue: T) {
+export function useLocalStorage<T>(
+  key: string,
+  initialValue: T,
+  options?: {
+    /** 读入后跑一遍校验：外部可改的数据（localStorage）在进入渲染前收敛成已知结构。 */
+    normalize?: (raw: unknown) => T;
+  }
+) {
+  const { normalize } = options ?? {};
   const [storedValue, setStoredValue] = useState<T>(() => {
     if (typeof window === 'undefined') return initialValue;
     try {
       const item = window.localStorage.getItem(key);
-      return item ? (JSON.parse(item) as T) : initialValue;
+      if (!item) return initialValue;
+      const parsed = JSON.parse(item) as unknown;
+      return normalize ? normalize(parsed) : (parsed as T);
     } catch {
       return initialValue;
     }
@@ -26,7 +36,8 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     const handleStorage = (e: StorageEvent) => {
       if (e.key === key && e.newValue) {
         try {
-          setStoredValue(JSON.parse(e.newValue) as T);
+          const parsed = JSON.parse(e.newValue) as unknown;
+          setStoredValue(normalize ? normalize(parsed) : (parsed as T));
         } catch {
           // ignore
         }
@@ -34,7 +45,7 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     };
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
-  }, [key]);
+  }, [key, normalize]);
 
   const setValue = (value: React.SetStateAction<T>) => {
     setStoredValue((prev) => {

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import type { Bookmark } from '../types';
 import { X, Upload, Check, FileText, Folder } from 'lucide-react';
 import { normalizeBookmarkUrl } from '../lib/openUrl';
+import { dialogSurface, glassBlur } from '../lib/surfaces';
 
 interface BookmarkImporterProps {
   onImport: (bookmarks: Bookmark[]) => void;
@@ -118,12 +119,12 @@ export function BookmarkImporter({ onImport, onClose, isDark }: BookmarkImporter
   const linkCount = previewLinks.filter((l) => l.type === 'link').length;
   const folderCount = previewLinks.filter((l) => l.type === 'folder').length;
 
-  const bgClass = isDark ? 'bg-gray-800/90 border-white/10 text-white' : 'bg-white/90 border-white/50 text-gray-800';
+  const bgClass = `${glassBlur} ${dialogSurface(isDark)}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
       <div
-        className={`rounded-2xl p-6 w-[560px] max-h-[85vh] flex flex-col shadow-2xl backdrop-blur-xl border ${bgClass}`}
+        className={`rounded-2xl p-6 w-[560px] max-h-[85vh] flex flex-col shadow-2xl ${bgClass}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">

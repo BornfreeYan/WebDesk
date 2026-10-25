@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import type { DesktopSettings, SyncConfig, SyncStatus, WidgetsData } from '../types';
 import type { TestResult } from '../lib/githubSync';
-import { X, Moon, Sun, Cloud, RefreshCw, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Moon, Sun, Cloud, RefreshCw, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Window } from './Window';
 
 interface SettingsWindowProps {
   settings: DesktopSettings;
@@ -28,42 +29,8 @@ const WALLPAPER_OPTIONS = [
 ];
 
 export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zIndex, onFocus, syncConfig, onSyncConfigChange, syncStatus, onTestConnection, onManualSync, widgets, onWidgetsChange, onExportData }: SettingsWindowProps) {
-  const [position, setPosition] = useState({ x: Math.max(20, window.innerWidth / 2 - 190), y: Math.max(40, window.innerHeight * 0.1) });
-  const [isDragging, setIsDragging] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const [testing, setTesting] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0 });
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // 只有点击标题栏空白处才拖拽，不点击按钮
-    if ((e.target as HTMLElement).closest('.window-title-bar') && !(e.target as HTMLElement).closest('.window-btn')) {
-      setIsDragging(true);
-      dragStart.current = {
-        x: e.clientX - position.x,
-        y: e.clientY - position.y,
-      };
-    }
-  };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        setPosition({
-          x: Math.max(0, Math.min(window.innerWidth - 400, e.clientX - dragStart.current.x)),
-          y: Math.max(0, Math.min(window.innerHeight - 500, e.clientY - dragStart.current.y)),
-        });
-      }
-    };
-    const handleMouseUp = () => setIsDragging(false);
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    }
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging]);
 
   const accentColors = [
     { name: 'Blue', value: '#007AFF' },
@@ -74,12 +41,10 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
     { name: 'Cyan', value: '#5AC8FA' },
   ];
 
-  const bgClass = isDark ? 'bg-gray-800/95 border-white/10 text-white' : 'bg-white/95 border-white/50 text-gray-800';
-
   const inputClass = `w-full px-3 py-2 rounded-lg text-xs outline-none transition-all border ${
     isDark
-      ? 'bg-black/30 border-white/10 text-white placeholder:text-white/40 focus:border-white/30'
-      : 'bg-gray-50 border-gray-200 text-gray-800 placeholder:text-gray-400 focus:border-blue-300'
+      ? 'bg-black/25 border-white/15 text-white placeholder:text-white/40 focus:border-white/30'
+      : 'bg-white/70 border-black/10 text-gray-800 placeholder:text-gray-400 focus:border-gray-400'
   }`;
 
   const handleTestConnection = async () => {
@@ -94,31 +59,18 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
   };
 
   return (
-    <div
-      className="fixed animate-window-enter"
-      style={{ 
-        left: position.x, 
-        top: position.y, 
-        width: 380,
-        zIndex,
-      }}
-      onMouseDown={handleMouseDown}
-      onClick={onFocus}
+    <Window
+      title="SETTINGS"
+      initialX={Math.max(20, window.innerWidth / 2 - 190)}
+      initialY={Math.max(40, window.innerHeight * 0.1)}
+      width={380}
+      isDark={isDark}
+      zIndex={zIndex}
+      onFocus={onFocus}
+      onClose={onClose}
     >
-      <div className={`rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border ${bgClass}`}>
-        {/* 标题栏 */}
-        <div className="window-title-bar flex items-center gap-2 px-4 py-3 cursor-move border-b border-white/5">
-          <button
-            onClick={onClose}
-            className="window-btn w-3 h-3 rounded-full bg-[#FF5F57] hover:brightness-90 transition-all flex items-center justify-center group cursor-default"
-          >
-            <X size={8} className="text-black/40 opacity-0 group-hover:opacity-100" />
-          </button>
-          <span className="ml-3 text-xs font-medium opacity-50 tracking-wide">SETTINGS</span>
-        </div>
-
         {/* 内容 */}
-        <div className="px-5 py-5 space-y-6 overflow-y-auto max-h-[65vh]">
+        <div className="px-5 py-5 space-y-6 overflow-y-auto overflow-x-hidden max-h-[65vh] glass-scroll">
           {/* SYSTEM */}
           <div>
             <h3 className="text-[11px] font-bold opacity-40 uppercase tracking-widest mb-3">System</h3>
@@ -408,7 +360,6 @@ export function SettingsWindow({ settings, onSettingsChange, onClose, isDark, zI
             </p>
           </div>
         </div>
-      </div>
-    </div>
+    </Window>
   );
 }

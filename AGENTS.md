@@ -34,12 +34,15 @@
 - Inbox 待看收件箱（v1.2）：Dock「Save to Inbox」与组件 Add 打开捕获窗口，Ctrl+V + 一次 Enter 入库；名称由 URL 推导，可写可选备注；组件带待看数量徽标，All 按钮打开完整文件夹窗口；条目存于书签树内的 Inbox 文件夹（随同步、随导出、可被搜索）
 - 备注与入库时间：`Bookmark.note` / `Bookmark.createdAt` 为可选字段；备注参与全局搜索
 - 显示规则：**备注优先** —— Inbox 组件、搜索下拉、文件夹窗口磁贴（含 Inbox）都用 `note || name` 作主行，名称降为次级小字行，磁贴 hover tooltip 显示 URL。注意：桌面图标仍只显示 `name`，未纳入此规则；Inbox 组件条目单行截断，组件高度只随条目数变化
+- 删除可撤销：删除后 6 秒内底部出现撤销条，点 Undo 把整棵子树放回原位置（含 Dock 钉住状态）；父文件夹同时被删时退回桌面根
+- 文件夹窗口标题显示完整路径（如 `Tools / Database`），嵌套多层时知道自己在哪
 - 设置窗口：仅关闭按钮（红点）、可拖拽标题栏、内容滚动；Dock 始终显示
 - 亮暗模式、System Accent 主题色、多款壁纸 + 自定义上传（上限 5MB；存盘失败会提示）
 - 书签图标：Google Favicon；无图标或 Google 默认地球标时显示名称首个字形；**名称以 emoji 开头则用该 emoji 当图标**
 - 打开链接仅允许 http(s)，`noopener`；GitHub 同步含本地 `updatedAt`、409 不盲覆盖
-- GitHub 同步：Fine-grained Token 配置、加载自动拉取、变更 5s 自动推送、时间戳冲突处理、409 自动重试、壁纸不同步
+- GitHub 同步：Fine-grained Token 配置、加载自动拉取、变更 5s 自动推送、时间戳冲突处理、409 自动重试、壁纸不同步；**只有真正推上云端才记账**，失败会自动重试
 - 数据本地备份：设置 → Export bookmarks as JSON
+- 外部数据（云端 JSON / 旧 localStorage）统一过 `src/lib/sanitize.ts`，坏节点丢弃而不是白屏
 - 全站英文 UI（书签名/文件夹名为用户数据，不翻译）
 
 ## 文档索引
@@ -57,6 +60,8 @@
 - Inbox 条目是书签树里的普通 `Bookmark`（带可选 `note` / `createdAt`），**不**存在 `webdesk-widgets-v1` 里；组件数据只存位置与开关。设计与取舍见 `references/discovery/06-inbox.md`
 - `webdesk-widgets-v1` 新增组件字段时，必须同步改 `App.tsx` 的 `normalizeWidgets`（读写两侧都要），否则老用户存量数据缺字段会白屏、组件开关会丢失
 - 右上角的搜索与计数在 `App.tsx` 里同属一个 `fixed` flex 行；`SearchBar` 自身只有 `relative`，**不要给它加 `fixed` 或 `right-*` 偏移**（历史上写死 `right-[200px]`，计数一超宽就压住搜索框）
+- **玻璃表面统一走 `src/lib/surfaces.ts`**：`windowSurface`（文件夹窗/设置窗）、`menuSurface`（右键菜单/搜索下拉）、`dialogSurface`（模态弹窗）、`menuItemHover`。不要在组件里再手写 `bg-gray-800/95` —— 95% 不透明的深色在暗色下就是一块黑板，这正是"文件夹窗口背景发黑"的成因
+- **窗口一律用 `src/components/Window.tsx`**：标题栏红点 + 拖拽 + 视口夹取都在里面，新增窗口不要再抄一遍拖拽逻辑；`FloatingMenu.tsx` 同理负责右键菜单的边界翻转
 - 本地开发用 pnpm（`pnpm dev` / `pnpm build` / `pnpm lint`）；仓库不提交 `pnpm-lock.yaml`，部署 CI 仍走 npm + `package-lock.json`。新增依赖时两端都要能装上
 - 同步数据文件：仓库根目录 `webdesk-data.json`（含 updatedAt 时间戳）
 - 部署 workflow 仅代码变更触发（`src/`、配置等），数据同步不触发部署

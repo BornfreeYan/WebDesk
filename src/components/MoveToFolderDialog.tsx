@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { Bookmark } from '../types';
 import { X, Folder } from 'lucide-react';
+import { dialogSurface, glassBlur, titleBarBorder } from '../lib/surfaces';
 
 /** 收集所有文件夹节点（扁平化），返回 id/name/深度 */
 function collectFolders(items: Bookmark[], depth: number, out: { id: string; name: string; depth: number }[]) {
@@ -52,10 +53,10 @@ export function MoveToFolderDialog({
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
       <div
-        className={`rounded-2xl shadow-2xl w-80 max-h-96 flex flex-col overflow-hidden ${isDark ? 'bg-gray-800/95 border border-white/10 text-white' : 'bg-white/95 border border-gray-200 text-gray-800'}`}
+        className={`rounded-2xl shadow-2xl w-80 max-h-96 flex flex-col overflow-hidden ${glassBlur} ${dialogSurface(isDark)}`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-4 py-3 border-b border-white/10 text-sm font-medium flex items-center justify-between">
+        <div className={`px-4 py-3 border-b text-sm font-medium flex items-center justify-between ${titleBarBorder(isDark)}`}>
           <span>Move “{itemName}” to…</span>
           <button onClick={onClose} className="opacity-50 hover:opacity-100 transition-opacity">
             <X size={14} />
@@ -70,7 +71,7 @@ export function MoveToFolderDialog({
               key={f.id}
               onClick={() => onSelect(f.id)}
               className={`w-full px-4 py-2 text-sm flex items-center gap-2 text-left transition-colors ${
-                isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'
+                isDark ? 'hover:bg-white/10' : 'hover:bg-black/5'
               }`}
               style={{ paddingLeft: 12 + f.depth * 16 }}
             >

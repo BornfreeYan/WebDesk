@@ -1,8 +1,11 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import type { Bookmark } from '../types';
-import { X, Folder, Trash2, Plus } from 'lucide-react';
+import { X, Folder, Trash2, Plus, Pencil, FolderInput, FolderOutput } from 'lucide-react';
 import { MoveToFolderDialog } from './MoveToFolderDialog';
 import { FaviconImg } from './FaviconImg';
+import { Window } from './Window';
+import { FloatingMenu } from './FloatingMenu';
+import { menuItemHover } from '../lib/surfaces';
 
 interface FolderWindowProps {
   folderId: string;
@@ -33,6 +36,18 @@ function findBookmarkById(bookmarks: Bookmark[], id: string): Bookmark | undefin
   return undefined;
 }
 
+/** 从根到目标文件夹的 id 链；用于在窗口标题里显示所在层级。 */
+function findPathToId(bookmarks: Bookmark[], id: string): Bookmark[] | null {
+  for (const b of bookmarks) {
+    if (b.id === id) return [b];
+    if (b.children) {
+      const nested = findPathToId(b.children, id);
+      if (nested) return [b, ...nested];
+    }
+  }
+  return null;
+}
+
 export function FolderWindow({
   folderId,
   allBookmarks,
@@ -51,13 +66,16 @@ export function FolderWindow({
   onMoveToFolder,
 }: FolderWindowProps) {
   const folder = useMemo(() => findBookmarkById(allBookmarks, folderId), [allBookmarks, folderId]);
+  // 标题显示所在层级（Tools / Database），嵌套多层时才不会不知道自己在哪
+  const path = useMemo(() => (findPathToId(allBookmarks, folderId) ?? []).map((b) => b.name), [allBookmarks, folderId]);
   // 级联错位：新打开的窗口在默认位置基础上向右下偏移，避免与已有窗口完全重叠
-  const [position, setPosition] = useState(() => ({
-    x: Math.max(40, window.innerWidth / 2 - 200) + stackIndex * 24,
-    y: 100 + stackIndex * 24,
-  }));
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0 });
+  const initialPosition = useMemo(
+    () => ({
+      x: Math.max(40, window.innerWidth / 2 - 200) + stackIndex * 24,
+      y: 100 + stackIndex * 24,
+    }),
+    [stackIndex]
+  );
   const lastDragEnd = useRef(0);
 
   // 右键菜单状态
@@ -81,6 +99,8 @@ export function FolderWindow({
   const pointerStart = useRef<{ id: string; x: number; y: number; moved: boolean } | null>(null);
   const dragOverRef = useRef<string | null>(null);
   const itemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  // 记录每个子项的类型，命中检测时只认文件夹
+  const folderIdsRef = useRef<Set<string>>(new Set());
 
   const handleItemPointerDown = (e: React.PointerEvent, item: Bookmark) => {
     if (e.button !== 0) return;
@@ -101,10 +121,12 @@ export function FolderWindow({
       if (Math.hypot(dx, dy) < 8) return; // 位移阈值内视为点击
       st.moved = true;
     }
-    // 命中检测：指针是否落在某个文件夹图标上
+    // 命中检测：只认文件夹。拖到链接上若也高亮，松手时 handleMoveToFolder 找不到目标，
+    // 会变成"高亮闪了一下但什么都没发生"。
     let overId: string | null = null;
     itemRefs.current.forEach((el, id) => {
       if (id === st.id) return;
+      if (!folderIdsRef.current.has(id)) return;
       const r = el.getBoundingClientRect();
       if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) {
         overId = id;
@@ -137,198 +159,167 @@ export function FolderWindow({
     setDragInfo(null);
   };
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.window-title-bar') && !(e.target as HTMLElement).closest('.window-btn')) {
-      setIsDragging(true);
-      dragStart.current = { x: e.clientX - position.x, y: e.clientY - position.y };
-    }
-  };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (isDragging) {
-        setPosition({
-          x: Math.max(0, Math.min(window.innerWidth - 480, e.clientX - dragStart.current.x)),
-          y: Math.max(0, Math.min(window.innerHeight - 400, e.clientY - dragStart.current.y)),
-        });
-      }
-    };
-    const handleMouseUp = () => setIsDragging(false);
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
-    }
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging]);
-
   if (!folder || folder.type !== 'folder') return null;
 
-  const bgClass = isDark ? 'bg-gray-800/95 border-white/10 text-white' : 'bg-white/95 border-white/50 text-gray-800';
+  folderIdsRef.current = new Set(
+    (folder.children ?? []).filter((c) => c.type === 'folder').map((c) => c.id)
+  );
 
   return (
     <>
-      {/* 窗口主体 */}
-      <div
-        className="fixed animate-window-enter"
-        style={{ left: position.x, top: position.y, width: '480px', zIndex }}
-        onMouseDown={handleMouseDown}
-        onClick={onFocus}
-      >
-        <div className={`rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border ${bgClass}`}>
-          {/* 标题栏 */}
-          <div className="window-title-bar flex items-center gap-2 px-4 py-3 cursor-move border-b border-white/5">
-            <button onClick={onClose} className="window-btn w-3 h-3 rounded-full bg-[#FF5F57] hover:brightness-90 transition-all flex items-center justify-center group cursor-default">
-              <X size={8} className="text-black/40 opacity-0 group-hover:opacity-100" />
-            </button>
-            <span className="ml-3 text-xs font-medium opacity-50 tracking-wide flex items-center gap-1.5">
-              <Folder size={12} />
-              {folder.name}
+      <Window
+        title={
+          <>
+            <Folder size={12} className="shrink-0" />
+            <span className="truncate">
+              {path.length > 1 ? path.join(' / ') : folder.name}
             </span>
-          </div>
+          </>
+        }
+        initialX={initialPosition.x}
+        initialY={initialPosition.y}
+        width={480}
+        isDark={isDark}
+        zIndex={zIndex}
+        onFocus={onFocus}
+        onClose={onClose}
+      >
+        {/* 内容区 */}
+        <div className="px-5 py-4 max-h-[360px] overflow-y-auto glass-scroll relative">
+          {/* 新建子文件夹按钮（右上角） */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onCreateSubfolder(folderId); }}
+            className={`absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center transition-colors z-10 ${
+              isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-black/5 text-gray-500'
+            }`}
+            title="New subfolder"
+          >
+            <Plus size={16} />
+          </button>
 
-          {/* 内容区 */}
-          <div className="px-5 py-4 max-h-[360px] overflow-y-auto relative">
-            {/* 新建子文件夹按钮（右上角） */}
-            <button
-              onClick={(e) => { e.stopPropagation(); onCreateSubfolder(folderId); }}
-              className={`absolute top-2 right-2 w-7 h-7 rounded-lg flex items-center justify-center transition-colors z-10 ${
-                isDark ? 'hover:bg-white/10 text-white/60' : 'hover:bg-black/5 text-gray-500'
-              }`}
-              title="New subfolder"
-            >
-              <Plus size={16} />
-            </button>
-
-            {!folder.children || folder.children.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-10 opacity-40">
-                <Folder size={32} className="mb-2" />
-                <p className="text-sm">Empty folder</p>
-                <p className="text-xs mt-1 opacity-70">Click + in the top-right to create a subfolder</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-4 gap-4 pt-4">
-                {folder.children.map((item) => (
-                  <FolderItem
-                    key={item.id}
-                    item={item}
-                    isDark={isDark}
-                    accentColor={accentColor}
-                    isRenaming={renamingId === item.id}
-                    renameValue={renameValue}
-                    lastDragEnd={lastDragEnd}
-                    dragTransform={dragInfo && dragInfo.id === item.id ? { dx: dragInfo.dx, dy: dragInfo.dy } : null}
-                    isDragOver={dragInfo?.overId === item.id && dragInfo.id !== item.id}
-                    onItemRef={(el) => {
-                      if (el) itemRefs.current.set(item.id, el);
-                      else itemRefs.current.delete(item.id);
-                    }}
-                    onPointerDown={(e) => handleItemPointerDown(e, item)}
-                    onPointerMove={handleItemPointerMove}
-                    onPointerUp={handleItemPointerUp}
-                    onPointerCancel={handleItemPointerCancel}
-                    onRenameChange={setRenameValue}
-                    onRenameCommit={() => setRenamingId(null)}
-                    onRenameCancel={() => {
-                      setRenamingId(null);
-                      setRenameValue(item.name);
-                    }}
-                    onRename={(name) => onRename(item.id, name)}
-                    onClick={() => {
-                      if (item.type === 'link' && item.url) {
-                        onOpenLink(item.url);
-                      } else if (item.type === 'folder') {
-                        onOpenFolder(item.id);
-                      }
-                    }}
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setContextMenu({
-                        show: true,
-                        x: e.clientX,
-                        y: e.clientY,
-                        itemId: item.id,
-                        isFolder: item.type === 'folder',
-                      });
-                      setRenamingId(null);
-                    }}
-                    onDelete={() => {
-                      onDelete(item.id);
-                      setContextMenu(null);
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          {!folder.children || folder.children.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 opacity-40">
+              <Folder size={32} className="mb-2" />
+              <p className="text-sm">Empty folder</p>
+              <p className="text-xs mt-1 opacity-70">Click + in the top-right to create a subfolder</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-4 gap-4 pt-4">
+              {folder.children.map((item) => (
+                <FolderItem
+                  key={item.id}
+                  item={item}
+                  isDark={isDark}
+                  accentColor={accentColor}
+                  isRenaming={renamingId === item.id}
+                  renameValue={renameValue}
+                  lastDragEnd={lastDragEnd}
+                  dragTransform={dragInfo && dragInfo.id === item.id ? { dx: dragInfo.dx, dy: dragInfo.dy } : null}
+                  isDragOver={dragInfo?.overId === item.id && dragInfo.id !== item.id}
+                  onItemRef={(el) => {
+                    if (el) itemRefs.current.set(item.id, el);
+                    else itemRefs.current.delete(item.id);
+                  }}
+                  onPointerDown={(e) => handleItemPointerDown(e, item)}
+                  onPointerMove={handleItemPointerMove}
+                  onPointerUp={handleItemPointerUp}
+                  onPointerCancel={handleItemPointerCancel}
+                  onRenameChange={setRenameValue}
+                  onRenameCommit={() => setRenamingId(null)}
+                  onRenameCancel={() => {
+                    setRenamingId(null);
+                    setRenameValue(item.name);
+                  }}
+                  onRename={(name) => onRename(item.id, name)}
+                  onClick={() => {
+                    if (item.type === 'link' && item.url) {
+                      onOpenLink(item.url);
+                    } else if (item.type === 'folder') {
+                      onOpenFolder(item.id);
+                    }
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setContextMenu({
+                      show: true,
+                      x: e.clientX,
+                      y: e.clientY,
+                      itemId: item.id,
+                      isFolder: item.type === 'folder',
+                    });
+                    setRenamingId(null);
+                  }}
+                  onDelete={() => {
+                    onDelete(item.id);
+                    setContextMenu(null);
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      </div>
+      </Window>
 
-      {/* 右键菜单 — 独立的 fixed 层，用全局坐标 */}
+      {/* 右键菜单 — 独立的 fixed 层，用全局坐标，并自行夹回视口内 */}
       {contextMenu?.show && (
         <>
           <div
             className="fixed inset-0 z-[60]"
             onClick={() => setContextMenu(null)}
           />
-          <div
-            className="fixed z-[70] rounded-xl shadow-2xl overflow-hidden py-1 min-w-[160px]"
-            style={{ left: contextMenu.x, top: contextMenu.y }}
+          <FloatingMenu x={contextMenu.x} y={contextMenu.y} isDark={isDark}>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setRenamingId(contextMenu.itemId);
+              const target = findBookmarkById(allBookmarks, contextMenu.itemId);
+              setRenameValue(target?.name || '');
+              setContextMenu(null);
+            }}
+            className={`w-full px-3 py-2 text-sm flex items-center gap-2 transition-colors text-left ${menuItemHover(isDark)}`}
           >
-            <div className={`${isDark ? 'bg-gray-800/95 border border-white/10 text-white' : 'bg-white/95 border border-gray-200 text-gray-800'} backdrop-blur-xl`}>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setRenamingId(contextMenu.itemId);
-                  const target = findBookmarkById(allBookmarks, contextMenu.itemId);
-                  setRenameValue(target?.name || '');
-                  setContextMenu(null);
-                }}
-                className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
-              >
-                <span className="w-3.5 h-3.5 text-xs flex items-center justify-center">✏️</span>
-                Rename
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMoveToDesktop(contextMenu.itemId);
-                  setContextMenu(null);
-                }}
-                className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
-              >
-                <span className="w-3.5 h-3.5 text-xs flex items-center justify-center">📤</span>
-                Move to Desktop
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  const target = findBookmarkById(allBookmarks, contextMenu.itemId);
-                  setMoveDialog({ itemId: contextMenu.itemId, itemName: target?.name || '' });
-                  setContextMenu(null);
-                }}
-                className={`w-full px-3 py-2 text-sm flex items-center gap-2 hover:bg-black/5 transition-colors text-left ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}
-              >
-                <Folder size={14} className="opacity-70" />
-                Move to Folder…
-              </button>
-              <div className={`h-px mx-2 my-1 ${isDark ? 'bg-white/10' : 'bg-gray-200'}`} />
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(contextMenu.itemId);
-                  setContextMenu(null);
-                }}
-                className={`w-full px-3 py-2 text-sm flex items-center gap-2 text-red-400 hover:bg-red-50 transition-colors text-left ${isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'}`}
-              >
-                <Trash2 size={14} />
-                Delete
-              </button>
-            </div>
-          </div>
+            <Pencil size={14} className="opacity-70" />
+            Rename
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onMoveToDesktop(contextMenu.itemId);
+              setContextMenu(null);
+            }}
+            className={`w-full px-3 py-2 text-sm flex items-center gap-2 transition-colors text-left ${menuItemHover(isDark)}`}
+          >
+            <FolderOutput size={14} className="opacity-70" />
+            Move to Desktop
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              const target = findBookmarkById(allBookmarks, contextMenu.itemId);
+              setMoveDialog({ itemId: contextMenu.itemId, itemName: target?.name || '' });
+              setContextMenu(null);
+            }}
+            className={`w-full px-3 py-2 text-sm flex items-center gap-2 transition-colors text-left ${menuItemHover(isDark)}`}
+          >
+            <FolderInput size={14} className="opacity-70" />
+            Move to Folder…
+          </button>
+          <div className={`h-px mx-2 my-1 ${isDark ? 'bg-white/10' : 'bg-black/10'}`} />
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(contextMenu.itemId);
+              setContextMenu(null);
+            }}
+            className={`w-full px-3 py-2 text-sm flex items-center gap-2 text-red-400 transition-colors text-left ${
+              isDark ? 'hover:bg-red-500/10' : 'hover:bg-red-50'
+            }`}
+          >
+            <Trash2 size={14} />
+            Delete
+          </button>
+          </FloatingMenu>
         </>
       )}
 
