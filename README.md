@@ -5,7 +5,9 @@
 个人 Web 桌面书签管理器。用 macOS 风格的桌面、图标、Dock 栏管理你的常用网站书签，通过 GitHub 仓库实现跨设备免费同步。Your desktop on the web.
 
 <p align="center">
-  https://github.com/user-attachments/assets/3ef1db73-10ef-4ecd-a878-b8003a4487dc
+  <video src="https://github.com/user-attachments/assets/3ef1db73-10ef-4ecd-a878-b8003a4487dc"
+         width="820" controls muted loop playsinline
+         poster="docs/screenshots/webdesk-demo-poster.jpg"></video>
 </p>
 
 ## 功能特性
