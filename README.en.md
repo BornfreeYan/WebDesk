@@ -5,11 +5,7 @@
 Your desktop on the web — a personal web desktop bookmark manager with a macOS-style desktop, icons, Dock and folders, backed by free cross-device sync through your own GitHub repository.
 
 <p align="center">
-  <a href="https://github.com/BornfreeYan/WebDesk/raw/main/docs/screenshots/webdesk-demo.mp4">
-    <img src="docs/screenshots/webdesk-demo-poster.jpg" alt="WebDesk demo: click to open folders; drag bookmarks, notes and the clock freely" width="820">
-  </a>
-  <br>
-  <sub>Click the image to play the demo (12s)</sub>
+  https://github.com/user-attachments/assets/3ef1db73-10ef-4ecd-a878-b8003a4487dc
 </p>
 
 ## Features

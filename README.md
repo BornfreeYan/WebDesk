@@ -5,11 +5,7 @@
 个人 Web 桌面书签管理器。用 macOS 风格的桌面、图标、Dock 栏管理你的常用网站书签，通过 GitHub 仓库实现跨设备免费同步。Your desktop on the web.
 
 <p align="center">
-  <a href="https://github.com/BornfreeYan/WebDesk/raw/main/docs/screenshots/webdesk-demo.mp4">
-    <img src="docs/screenshots/webdesk-demo-poster.jpg" alt="WebDesk 演示：点击打开文件夹，书签、便签与时钟均可自由拖拽" width="820">
-  </a>
-  <br>
-  <sub>点击上图播放演示视频（12 秒）</sub>
+  https://github.com/user-attachments/assets/3ef1db73-10ef-4ecd-a878-b8003a4487dc
 </p>
 
 ## 功能特性
