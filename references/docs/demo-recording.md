@@ -83,21 +83,19 @@ GitHub 的 README 渲染器识别这种链接，自动展开成 `<details open>`
 
 所以：**裸链接、单独成段、外面什么也别包**。想要居中只能接受默认全宽（GitHub 不让改写容器）。
 
-仓库里另外两个文件是备用素材，README 目前不引用：
+**视频文件不提交进仓库。** 视频托管在 GitHub 附件 CDN 上（issue #1 拖入生成的那条链接），
+仓库里不留 mp4 / 封面图副本，README 也不引用本地文件。这样仓库体积不随视频增长。
 
-- `docs/screenshots/webdesk-demo.mp4` — 视频本体（H.264，静音，2.4MB），仓库内备份 + 给 Fork 用户
-- `docs/screenshots/webdesk-demo-poster.jpg` — 封面帧，可用于 v1.1 顶部预览或社交平台
-
-导出参考（有 ffmpeg 时）：
+导出参考（有 ffmpeg 时，压好后拖进任意 issue 拿附件链接）：
 
 ```bash
-# 视频：压到 2/4MB 左右，960 宽
-ffmpeg -i demo.mov -vf "scale=960:-2" -c:v libx264 -crf 26 -preset slow -an docs/screenshots/webdesk-demo.mp4
-# 封面：取第 4 秒一帧
-ffmpeg -ss 4 -i docs/screenshots/webdesk-demo.mp4 -frames:v 1 -q:v 3 docs/screenshots/webdesk-demo-poster.jpg
+# 视频：压到 2–4MB 左右，960 宽
+ffmpeg -i demo.mov -vf "scale=960:-2" -c:v libx264 -crf 26 -preset slow -an demo.mp4
+# 可选：封面帧，取第 4 秒一帧（用于社交平台，不进仓库）
+ffmpeg -ss 4 -i demo.mp4 -frames:v 1 -q:v 3 demo-poster.jpg
 ```
 
-⚠️ 换掉大文件**不会缩小已有的 git 历史**，旧的 27MB 仍留在历史里。要真正瘦身得重写历史
+⚠️ 换掉大文件**不会缩小已有的 git 历史**，旧的 27MB GIF 仍留在历史里。要真正瘦身得重写历史
 （`git filter-repo`），属于不可逆操作，需用户单独决定。
 
 ---
@@ -134,4 +132,4 @@ ffmpeg -ss 4 -i docs/screenshots/webdesk-demo.mp4 -frames:v 1 -q:v 3 docs/screen
 - 演示数据用「假书签」（文档站、工具站），不要录私人邮箱、公司内网。
 - Token、Owner 输入框不要入镜明文。
 
-拍完后把 `docs/screenshots/webdesk-demo.mp4` 与 `webdesk-demo-poster.jpg` 提交仓库，并改 README「演示」一节的占位即可。
+拍完后把视频拖进任意 issue 拿到 `user-attachments` 链接，替换 README 里那一行即可——**不要提交进仓库**。
