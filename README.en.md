@@ -4,11 +4,10 @@
 
 Your desktop on the web — a personal web desktop bookmark manager with a macOS-style desktop, icons, Dock and folders, backed by free cross-device sync through your own GitHub repository.
 
-<div align="center">
-
+<!-- Demo video: GitHub turns this user-attachments link into an inline player.
+     Do not wrap it in a <video> tag or a centered div — GitHub nests the player in a
+     details container, and a shrink-to-fit parent collapses it to 0px wide. -->
 https://github.com/user-attachments/assets/3ef1db73-10ef-4ecd-a878-b8003a4487dc
-
-</div>
 
 ## Features
 

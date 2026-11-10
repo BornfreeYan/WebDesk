@@ -4,11 +4,10 @@
 
 个人 Web 桌面书签管理器。用 macOS 风格的桌面、图标、Dock 栏管理你的常用网站书签，通过 GitHub 仓库实现跨设备免费同步。Your desktop on the web.
 
-<div align="center">
-
+<!-- 演示视频：GitHub 会把这个 user-attachments 链接渲染成带控件的播放器。
+     不要用 <video> 标签包它，也不要套 div align=center —— GitHub 会把播放器塞进一个
+     details 容器，外层一旦收缩宽度就会算出 0px，视频直接看不见。 -->
 https://github.com/user-attachments/assets/3ef1db73-10ef-4ecd-a878-b8003a4487dc
-
-</div>
 
 ## 功能特性
 
