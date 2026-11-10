@@ -13,7 +13,7 @@
 | 优先级 | 形态 | 用途 | 建议规格 |
 |--------|------|------|----------|
 | **P0 必拍** | 1 张横图封面 | GitHub README 顶图、仓库 social preview、推特/博客 | 1920×1080 PNG/WebP，桌面全貌，无痕窗口、无 Token |
-| **P0 必拍** | 1 条 8–15 秒 GIF | README 功能列表下方，3 秒看懂「能拖」 | 宽 800–960px，12fps，**< 4MB**（GitHub 会压缩大 GIF） |
+| **P0 必拍** | 1 条 8–15 秒 MP4 + 封面图 | README 首屏，3 秒看懂「能拖」 | 宽 800–960px，**MP4 现已控制在 2–4MB**（27MB 的 GIF 已退役，见 §3） |
 | **P1 很值** | 1 条 60–90 秒无口播视频 | B 站 / YouTube，README 只放链接 | 1080p 30fps MP4，**不要提交进 git** |
 | **P1 小红书** | 3–9 张竖图 + 可选 15–30 秒竖屏视频 | 封面靠「像 Mac 桌面」截图，不是靠长演示 | 3:4 或 9:16；中文大字叠加 |
 
@@ -44,24 +44,41 @@
 
 一张图只讲一件事。小红书封面不要用全英文长句。
 
-**不必单独为「emoji 图标」拍一条视频**——在英雄图或 GIF 里放 **1–2 个名称就是 emoji 的书签**（如 🐙、📝）即可被看见。想强调时，小红书加一张：右键 Rename 成单个 emoji，图标立刻变成那个表情。
+**不必单独为「emoji 图标」拍一条视频**——在英雄图或短 MP4 里放 **1–2 个名称就是 emoji 的书签**（如 🐙、📝）即可被看见。
 
 ---
 
-## 3. GIF：README 只放「会动的一句」
+## 3. README 首屏：短 MP4 + 封面图（GIF 已退役）
 
-完整 90 秒不要做成 GIF（体积爆炸、GitHub 预览卡）。
+**2026-11-10 起不再用 GIF。** 旧的 `webdesk-demo.gif` 有 27MB，README 首屏要拉半分钟，
+仓库 `.git` 也被它撑大；同一条录屏转成 H.264 MP4 只有 2.4MB，小了一个数量级。
 
-**推荐一条精华 GIF（约 12 秒）镜头：**
+11 秒左右的镜头就够：
 
 1. 鼠标划过 Dock（放大）
 2. **单击**打开文件夹
 3. 把一个图标拖进文件夹（慢、停半秒）
 
-到此为止。导入 HTML、GitHub 同步、等 5 秒推送，都留给长视频——GIF 里等 5 秒等于送客。
+到此为止。导入 HTML、GitHub 同步、等 5 秒推送，都留给长视频。
 
-导出参考：`ffmpeg -i demo.mp4 -vf "fps=12,scale=960:-1" -loop 0 demo.gif`，再压到 4MB 以下。  
-文件：仓库根目录 `demo.gif`（可接受的体积），README 引用；**完整 MP4 只放 B 站 / YouTube**。
+**文件与引用方式**
+
+- `docs/screenshots/webdesk-demo.mp4` — 视频本体（H.264，静音）
+- `docs/screenshots/webdesk-demo-poster.jpg` — 封面帧，从视频里截一帧、裁掉浏览器边框
+- README 用「封面图 + 链接到 mp4 的 raw 地址」的双层写法。
+  **不要直接写 `<video>`**：GitHub 的 README 渲染会过滤掉 video 标签，不会播放。
+
+导出参考（有 ffmpeg 时）：
+
+```bash
+# 视频：压到 2/4MB 左右，960 宽
+ffmpeg -i demo.mov -vf "scale=960:-2" -c:v libx264 -crf 26 -preset slow -an docs/screenshots/webdesk-demo.mp4
+# 封面：取第 4 秒一帧
+ffmpeg -ss 4 -i docs/screenshots/webdesk-demo.mp4 -frames:v 1 -q:v 3 docs/screenshots/webdesk-demo-poster.jpg
+```
+
+⚠️ 换掉大文件**不会缩小已有的 git 历史**，旧的 27MB 仍留在历史里。要真正瘦身得重写历史
+（`git filter-repo`），属于不可逆操作，需用户单独决定。
 
 ---
 
@@ -81,7 +98,7 @@
 
 | 平台 | 嵌什么 | 不要嵌什么 |
 |------|--------|------------|
-| **GitHub README** | 英雄图 PNG + 短 GIF；下面一行 B 站/YouTube 链接 | 整段 MP4、未打码 Token、自己的真实书签隐私 |
+| **GitHub README** | 英雄图 PNG + 短 MP4（封面图链接到视频）；下面一行 B 站/YouTube 链接 | 未打码 Token、自己的真实书签隐私 |
 | **仓库 Social preview** | 与英雄图同一张（Settings → General → Social preview） | 过暗、字太小的截图 |
 | **小红书** | 竖图轮播为主；视频用 15–30 秒竖屏切同一条横屏（裁中间） | 对着 GitHub Settings 录 Fine-grained Token 全过程 |
 | **推特 / 即刻 / V2EX** | 英雄图 + 一句话 + 仓库链接；V2EX 可补 Fork 步骤 | 先丢 90 秒没字幕的片 |
@@ -97,4 +114,4 @@
 - 演示数据用「假书签」（文档站、工具站），不要录私人邮箱、公司内网。
 - Token、Owner 输入框不要入镜明文。
 
-拍完后把 `demo.gif` / 封面图提交仓库，并改 README「演示」一节的占位即可。
+拍完后把 `docs/screenshots/webdesk-demo.mp4` 与 `webdesk-demo-poster.jpg` 提交仓库，并改 README「演示」一节的占位即可。

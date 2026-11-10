@@ -520,6 +520,7 @@ function App() {
           <SearchBar
             bookmarks={data.bookmarks}
             isDark={isDark}
+            accentColor={data.settings.accentColor}
             onOpenLink={(url) => openBookmarkUrl(url)}
             onOpenFolder={openFolderWindow}
           />

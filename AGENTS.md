@@ -29,7 +29,7 @@
 - 图标自由拖拽 + 边界限制；macOS 风格 Dock（悬停放大、打开指示点、accent 描边；始终显示，不可关闭）
 - 手动添加 / 浏览器 HTML 书签导入（平铺解析）
 - 文件夹系统：嵌套、单击开窗、窗口内拖拽归入、右键"移动到文件夹"树形选择、移到桌面、递归重命名/删除、防循环
-- 全局搜索（右上角，模糊匹配所有层级）
+- 全局搜索（右上角，模糊匹配所有层级；支持 Ctrl/Cmd+K、↑↓、Enter、Esc 键盘操作，命中词高亮，选中行用 accent 着色）
 - 桌面小组件：时钟（毛玻璃）、待办（增删勾选编辑、多行显示）、Inbox（最近 3 条待看），均可拖拽、本地存储、设置开关
 - Inbox 待看收件箱（v1.2）：Dock「Save to Inbox」与组件 Add 打开捕获窗口，Ctrl+V + 一次 Enter 入库；名称由 URL 推导，可写可选备注；组件带待看数量徽标，All 按钮打开完整文件夹窗口；条目存于书签树内的 Inbox 文件夹（随同步、随导出、可被搜索）
 - 备注与入库时间：`Bookmark.note` / `Bookmark.createdAt` 为可选字段；备注参与全局搜索
@@ -60,7 +60,11 @@
 - Inbox 条目是书签树里的普通 `Bookmark`（带可选 `note` / `createdAt`），**不**存在 `webdesk-widgets-v1` 里；组件数据只存位置与开关。设计与取舍见 `references/discovery/06-inbox.md`
 - `webdesk-widgets-v1` 新增组件字段时，必须同步改 `App.tsx` 的 `normalizeWidgets`（读写两侧都要），否则老用户存量数据缺字段会白屏、组件开关会丢失
 - 右上角的搜索与计数在 `App.tsx` 里同属一个 `fixed` flex 行；`SearchBar` 自身只有 `relative`，**不要给它加 `fixed` 或 `right-*` 偏移**（历史上写死 `right-[200px]`，计数一超宽就压住搜索框）
-- **玻璃表面统一走 `src/lib/surfaces.ts`**：`windowSurface`（文件夹窗/设置窗）、`menuSurface`（右键菜单/搜索下拉）、`dialogSurface`（模态弹窗）、`menuItemHover`。不要在组件里再手写 `bg-gray-800/95` —— 95% 不透明的深色在暗色下就是一块黑板，这正是"文件夹窗口背景发黑"的成因
+- 搜索支持键盘：`Ctrl/Cmd+K` 聚焦、`/` 唤起、`↑↓` 选择、`Enter` 打开、`Esc` 清空。选中行用 accent 着色（`backgroundColor: accent + '22'` + 左侧 inset 高亮条）——这是 accent 的正确用法，不要扩散到正文
+- **玻璃表面统一走 `src/lib/surfaces.ts`**：`windowSurface`（窗口外壳/标题栏）、`windowBodyTint`（窗口内容区）、`menuSurface`（右键菜单/搜索下拉）、`dialogSurface`（模态弹窗）、`menuItemHover`。不要在组件里再手写 `bg-gray-800/95` —— 95% 不透明的深色在暗色下就是一块黑板，这正是"文件夹窗口背景发黑"的成因
+- **窗口的标题栏与内容区必须同色系**：`windowSurface` 与 `windowBodyTint` 都用 `#2a2a2e`（暗）/ `white`（亮），只是不透明度不同。曾出现过"浅灰玻璃标题栏 + 深色内容区"的两截拼贴，是改内容区时漏改标题栏造成的
+- **文字颜色跟随表面，不要用 accent 当正文色**：accent 只用于选中行、开关、焦点环、按钮等强调位置。橙色（#FF9500）在白底上对比度仅约 2.2:1，远低于 WCAG 4.5:1，整页正文染成 accent 反而更难读
+- **透明度只用 Tailwind 默认刻度（5 的倍数）**：`bg-white/92`、`bg-black/8` 不会生成任何 CSS 且不报错，会静默失效。历史上踩过两次
 - **窗口一律用 `src/components/Window.tsx`**：标题栏红点 + 拖拽 + 视口夹取都在里面，新增窗口不要再抄一遍拖拽逻辑；`FloatingMenu.tsx` 同理负责右键菜单的边界翻转
 - 本地开发用 pnpm（`pnpm dev` / `pnpm build` / `pnpm lint`）；仓库不提交 `pnpm-lock.yaml`，部署 CI 仍走 npm + `package-lock.json`。新增依赖时两端都要能装上
 - 同步数据文件：仓库根目录 `webdesk-data.json`（含 updatedAt 时间戳）

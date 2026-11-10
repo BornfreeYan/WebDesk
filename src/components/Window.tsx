@@ -83,7 +83,7 @@ export function Window({
           >
             <X size={8} className="text-black/40 opacity-0 group-hover:opacity-100" />
           </button>
-          <div className="ml-3 text-xs font-medium opacity-60 tracking-wide flex items-center gap-1.5 min-w-0">
+          <div className="ml-3 text-xs font-medium opacity-75 tracking-wide flex items-center gap-1.5 min-w-0">
             {title}
           </div>
         </div>
