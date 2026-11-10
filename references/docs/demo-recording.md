@@ -48,7 +48,7 @@
 
 ---
 
-## 3. README 首屏：短 MP4 + 封面图（GIF 已退役）
+## 3. README 首屏：内嵌 MP4 播放器（GIF 已退役）
 
 **2026-11-10 起不再用 GIF。** 旧的 `webdesk-demo.gif` 有 27MB，README 首屏要拉半分钟，
 仓库 `.git` 也被它撑大；同一条录屏转成 H.264 MP4 只有 2.4MB，小了一个数量级。
@@ -61,12 +61,32 @@
 
 到此为止。导入 HTML、GitHub 同步、等 5 秒推送，都留给长视频。
 
-**文件与引用方式**
+**文件与引用方式（2026-11-10 定稿）**
 
-- `docs/screenshots/webdesk-demo.mp4` — 视频本体（H.264，静音）
-- `docs/screenshots/webdesk-demo-poster.jpg` — 封面帧，从视频里截一帧、裁掉浏览器边框
-- README 用「封面图 + 链接到 mp4 的 raw 地址」的双层写法。
-  **不要直接写 `<video>`**：GitHub 的 README 渲染会过滤掉 video 标签，不会播放。
+README 首屏现在是**内嵌播放器**，不是封面图链接。做法是把视频作为附件传到
+GitHub（任何 issue / PR 里拖入即可得到 `user-attachments` 链接），然后把**链接单独一行**写进 README：
+
+```
+https://github.com/user-attachments/assets/<id>
+```
+
+GitHub 的 README 渲染器识别这种链接，自动展开成 `<details open>` + `<video controls muted>`，
+宽度随 README 容器自适应。
+
+**三个必须知道的坑**
+
+| 坑 | 现象 |
+|---|---|
+| 直接写 `<video src="...">` 标签 | 标签会被保留但不会自动识别成附件播放器，只有浏览器原生行为，GitHub 不加样式 |
+| 套一层 `<div align="center">` 或 `<p align="center">` | 外层收缩成 `width: fit-content`，视频的 `max-width:100%` 因此算出 **0px**，播放器完全看不见 |
+| 用 `<p>` 包裸 URL | HTML 块内部的 Markdown 不再解析，链接不会变成播放器，只会显示成纯文本 |
+
+所以：**裸链接、单独成段、外面什么也别包**。想要居中只能接受默认全宽（GitHub 不让改写容器）。
+
+仓库里另外两个文件是备用素材，README 目前不引用：
+
+- `docs/screenshots/webdesk-demo.mp4` — 视频本体（H.264，静音，2.4MB），仓库内备份 + 给 Fork 用户
+- `docs/screenshots/webdesk-demo-poster.jpg` — 封面帧，可用于 v1.1 顶部预览或社交平台
 
 导出参考（有 ffmpeg 时）：
 

@@ -11,7 +11,7 @@
 5. **上线（Fork 分发）** ✅ — 已部署至 GitHub Pages，Fork 流程经新账号实测验证
 6. **v1.1（小组件与效率）** ✅ — 已完成
 7. **v1.2（Inbox 待看收件箱）** ✅ — 已完成：快速捕获窗口、桌面组件、可选备注；条目存于书签树随同步
-8. **收尾** 🔄 — 双语 README 已就绪；演示视频/GIF 待拍（脚本见 `references/docs/demo-recording.md`）
+8. **收尾** 🔄 — 双语 README 已就绪；演示视频已内嵌（issue #1 的 user-attachments 链接）
 
 ## 当前状态
 
@@ -49,7 +49,7 @@
 
 - `references/discovery/`：Brainstorm / Research / User Stories / Questions / Optimization / Inbox（六份）
 - `references/docs/PRD.md`：产品需求文档（含 v1.1、v1.2 章节与里程碑）
-- `references/docs/demo-recording.md`：演示图/GIF/视频拍摄与分发建议
+- `references/docs/demo-recording.md`：演示视频拍摄与分发建议（含 README 内嵌播放器的三个坑）
 - `README.md` / `README.en.md`：用户文档（中文/英文双语）
 - `AGENTS.md`：本文件
 
@@ -61,6 +61,7 @@
 - `webdesk-widgets-v1` 新增组件字段时，必须同步改 `App.tsx` 的 `normalizeWidgets`（读写两侧都要），否则老用户存量数据缺字段会白屏、组件开关会丢失
 - 右上角的搜索与计数在 `App.tsx` 里同属一个 `fixed` flex 行；`SearchBar` 自身只有 `relative`，**不要给它加 `fixed` 或 `right-*` 偏移**（历史上写死 `right-[200px]`，计数一超宽就压住搜索框）
 - 搜索支持键盘：`Ctrl/Cmd+K` 聚焦、`/` 唤起、`↑↓` 选择、`Enter` 打开、`Esc` 清空。选中行用 accent 着色（`backgroundColor: accent + '22'` + 左侧 inset 高亮条）——这是 accent 的正确用法，不要扩散到正文
+- **README 演示视频**：把 `user-attachments` 链接**裸写、单独成段**，GitHub 会自动渲染成内嵌播放器。不要套 `<div align="center">` / `<p>`（外层收缩宽度会让 `max-width:100%` 算出 0px，播放器消失），也不要自己写 `<video>` 标签
 - **玻璃表面统一走 `src/lib/surfaces.ts`**：`windowSurface`（窗口外壳/标题栏）、`windowBodyTint`（窗口内容区）、`menuSurface`（右键菜单/搜索下拉）、`dialogSurface`（模态弹窗）、`menuItemHover`。不要在组件里再手写 `bg-gray-800/95` —— 95% 不透明的深色在暗色下就是一块黑板，这正是"文件夹窗口背景发黑"的成因
 - **窗口的标题栏与内容区必须同色系**：`windowSurface` 与 `windowBodyTint` 都用 `#2a2a2e`（暗）/ `white`（亮），只是不透明度不同。曾出现过"浅灰玻璃标题栏 + 深色内容区"的两截拼贴，是改内容区时漏改标题栏造成的
 - **文字颜色跟随表面，不要用 accent 当正文色**：accent 只用于选中行、开关、焦点环、按钮等强调位置。橙色（#FF9500）在白底上对比度仅约 2.2:1，远低于 WCAG 4.5:1，整页正文染成 accent 反而更难读
