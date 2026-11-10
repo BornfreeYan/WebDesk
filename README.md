@@ -4,7 +4,11 @@
 
 个人 Web 桌面书签管理器。用 macOS 风格的桌面、图标、Dock 栏管理你的常用网站书签，通过 GitHub 仓库实现跨设备免费同步。Your desktop on the web.
 
+<div align="center">
+
 https://github.com/user-attachments/assets/3ef1db73-10ef-4ecd-a878-b8003a4487dc
+
+</div>
 
 ## 功能特性
 
